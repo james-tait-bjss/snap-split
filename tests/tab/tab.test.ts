@@ -13,15 +13,19 @@ describe("new Tab", () => {
     })
 
     it("should have one balance entry for each user", () => {
-        expect(new Tab("", users).balances.size).toBe(users.length)
+        expect(new Tab("", users).getBalances().size).toBe(users.length)
     })
 
     it("should have a balance of zero for each user", () => {
         const tab = new Tab("", users)
-        expect(tab.balances.get(user1.id)).toBe(0)
-        expect(tab.balances.get(user2.id)).toBe(0)
-        expect(tab.balances.get(user3.id)).toBe(0)
+        expect(tab.getBalances().get(user1.id)).toBe(0)
+        expect(tab.getBalances().get(user2.id)).toBe(0)
+        expect(tab.getBalances().get(user3.id)).toBe(0)
     })
+})
+
+describe("getBalances", () => {
+
 })
 
 describe("addTransactionWithEqualSplit", () => {
@@ -29,13 +33,13 @@ describe("addTransactionWithEqualSplit", () => {
         const invalidTransactionAmountString = "Transaction amount should be a valid number greater than zero"
         const tab = new Tab("foobar", users)
 
-        expect(() => tab.addTransactionWithEqualSplit(0,  Array.from(tab.balances.keys())))
+        expect(() => tab.addTransactionWithEqualSplit(0,  Array.from(tab.getBalances().keys())))
         .toThrow(invalidTransactionAmountString)
 
-        expect(() => tab.addTransactionWithEqualSplit(-1,  Array.from(tab.balances.keys())))
+        expect(() => tab.addTransactionWithEqualSplit(-1,  Array.from(tab.getBalances().keys())))
         .toThrow(invalidTransactionAmountString)
 
-        expect(() => tab.addTransactionWithEqualSplit(NaN,  Array.from(tab.balances.keys())))
+        expect(() => tab.addTransactionWithEqualSplit(NaN,  Array.from(tab.getBalances().keys())))
         .toThrow(invalidTransactionAmountString)
     })
 
@@ -46,27 +50,27 @@ describe("addTransactionWithEqualSplit", () => {
         .toThrow("Must have at least one involved user")
 
         expect(() => tab.addTransactionWithEqualSplit(1,  ["fake-user"]))
-        .toThrow("User was not found in tab")
+        .toThrow("User not found in tab")
     })
 
     it("should evenly distribute the transaction when it divides the number of users", () => {
         const tab = new Tab("foobar", users)
 
-        tab.addTransactionWithEqualSplit(6, Array.from(tab.balances.keys()))
+        tab.addTransactionWithEqualSplit(6, Array.from(tab.getBalances().keys()))
 
-        expect(tab.balances.get(user1.id)).toBe(2)
-        expect(tab.balances.get(user2.id)).toBe(2)
-        expect(tab.balances.get(user3.id)).toBe(2)
+        expect(tab.getBalances().get(user1.id)).toBe(2)
+        expect(tab.getBalances().get(user2.id)).toBe(2)
+        expect(tab.getBalances().get(user3.id)).toBe(2)
     })
 
     it("should add the remainder to the correct users when the transaction doesn't divide the number of users", () => {
         const tab = new Tab("foobar", users)
 
-        tab.addTransactionWithEqualSplit(8, Array.from(tab.balances.keys()))
+        tab.addTransactionWithEqualSplit(8, Array.from(tab.getBalances().keys()))
 
-        expect(tab.balances.get(user1.id)).toBe(3)
-        expect(tab.balances.get(user2.id)).toBe(3)
-        expect(tab.balances.get(user3.id)).toBe(2)
+        expect(tab.getBalances().get(user1.id)).toBe(3)
+        expect(tab.getBalances().get(user2.id)).toBe(3)
+        expect(tab.getBalances().get(user3.id)).toBe(2)
     })
 
     it("should only increase balance for included users", () => {
@@ -74,9 +78,8 @@ describe("addTransactionWithEqualSplit", () => {
 
         tab.addTransactionWithEqualSplit(4, [user1.id, user2.id])
 
-        expect(tab.balances.get(user1.id)).toBe(2)
-        expect(tab.balances.get(user2.id)).toBe(2)
-        expect(tab.balances.get(user3.id)).toBe(0)
+        expect(tab.getBalances().get(user1.id)).toBe(2)
+        expect(tab.getBalances().get(user2.id)).toBe(2)
+        expect(tab.getBalances().get(user3.id)).toBe(0)
     })
-
 })
