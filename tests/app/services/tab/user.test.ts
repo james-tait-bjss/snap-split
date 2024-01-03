@@ -1,4 +1,4 @@
-import User from "../../src/tab/user"
+import User from "../../../../src/app/services/tab/user"
 
 const generatedUUID = "uuid"
 

@@ -7,10 +7,10 @@
     "test": "tests"
   },
   "scripts": {
-    "start": "tsc && node dist/app.js",
+    "build": "rm -rf dist/* && tsc",
+    "start": "rm -rf dist/* && tsc && node dist/src/server.js --watch",
     "lint": "eslint . --ext .ts",
-    "test": "jest",
-    "test:coverage": "jest --coverage"
+    "test": "jest"
   },
   "keywords": [],
   "author": "",
@@ -31,6 +31,7 @@
   "jest": {
     "preset": "ts-jest",
     "testEnvironment": "node",
-    "coverageReporters": ["lcov", "text-summary"]
+    "coverageReporters": ["lcov", "text-summary"],
+    "testPathIgnorePatterns": ["dist/*"]
   }
 }

@@ -1,5 +1,5 @@
-import Tab from "../../src/tab/tab"
-import User from "../../src/tab/user"
+import Tab from "../../../../src/app/services/tab/tab"
+import User from "../../../../src/app/services/tab/user"
 
 const user1 = new User("joe", "bloggs")
 const user2 = new User("foo", "bar")
