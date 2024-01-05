@@ -1,16 +1,39 @@
-import User from "./user"
+import { TabRepository } from "../repository";
+import { tabNotExistError } from "./errors";
 
-export default class Tab {
+export class TabService {
+    constructor(private readonly tabRepository: TabRepository) { }
+
+    newTab(name: string, users: string[]): string {
+        const tab = new Tab(name, users)
+
+        const id = this.tabRepository.newTab(tab.name, Object.fromEntries(tab.getBalances().entries()))
+
+        return id
+    }
+
+    getTab(id: string): object {
+        const tab = this.tabRepository.getTab(id)
+
+        if (tab === undefined) {
+            throw tabNotExistError(id) 
+        }
+
+        return tab
+    }
+}
+
+class Tab {
     private balances: Map<string, number>;
 
     constructor(
         public name: string,
-        users: User[]
+        users: string[]
     ) {
         this.balances = new Map<string, number>();
 
         for (const user of users) {
-            this.balances.set(user.id, 0)
+            this.balances.set(user, 0)
         }
     }
 
@@ -59,5 +82,3 @@ export default class Tab {
         return balance;
     } 
 }
-
-
