@@ -18,7 +18,6 @@ describe("fileDatabaseFactory", () => {
 
         const fileDB = fileDatabaseFactory("/does/exist.db", vol)
 
-        // Using the public API here as there is no other way to test really
         expect(fileDB.get("hello")).toEqual("world")
     })
 })

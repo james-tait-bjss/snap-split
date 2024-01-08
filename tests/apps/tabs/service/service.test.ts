@@ -1,32 +1,61 @@
-// import { randomUUID } from "crypto"
-// import { Tab } from "../../../src/apps/tabs/service"
+import { randomUUID } from "crypto"
+import { TabRepository, TabService } from "../../../../src/apps/tabs/service/service"
+import { TabServiceError } from "../../../../src/apps/tabs/service/errors"
 
-// const user1 = randomUUID()
-// const user2 = randomUUID()
-// const user3 = randomUUID()
+class MockTabRepository implements TabRepository{
+    public tabs = new Map<string, object>()
 
-// const users: string[] = [user1, user2, user3]
+    newTab(name: string, balances: object): string {
+        const id = randomUUID()
+        this.tabs.set(id, {"name": name, "balances": balances})
+        return id
+    }
 
-// describe("new Tab", () => {
-//     it("should set the name correctly", () => {
-//         expect(new Tab("foobar", []).name).toBe("foobar")
-//     })
+    getTab(id: string): object | undefined {
+        return this.tabs.get(id)
+    }
+}
 
-//     it("should have one balance entry for each user", () => {
-//         expect(new Tab("", users).getBalances().size).toBe(users.length)
-//     })
+describe("TabService.newTab", () => {
+    it("should create a new tab with the given name and balances set to zero", () => {
+        const mock = new MockTabRepository()
+        const service = new TabService(mock)
 
-//     it("should have a balance of zero for each user", () => {
-//         const tab = new Tab("", users)
-//         expect(tab.getBalances().get(user1)).toBe(0)
-//         expect(tab.getBalances().get(user2)).toBe(0)
-//         expect(tab.getBalances().get(user3)).toBe(0)
-//     })
-// })
+        const id = service.newTab("new_tab", ["user1", "user2", "user3"])
 
-// describe("getBalances", () => {
+        expect(mock.getTab(id)).toStrictEqual({
+            "name" : "new_tab",
+            "balances": {
+                "user1": 0,
+                "user2": 0,
+                "user3": 0,
+            }
+        })
+    })
+})
 
-// })
+describe("TabService.getTab", () => {
+    it("should return the tab as an object if it exists", () => {
+        const mock = new MockTabRepository()
+        const id = mock.newTab("new_tab", {"user1": 0, "user2": 0})
+        const service = new TabService(mock)
+
+        expect(service.getTab(id)).toStrictEqual({
+            "name" : "new_tab",
+            "balances": {
+                "user1": 0,
+                "user2": 0,
+            }
+        })
+    })
+
+    it("should throw a TabServiceError if the tab does not exist in the repository", () => {
+        const mock = new MockTabRepository()
+        const service = new TabService(mock)
+
+        expect(() => service.getTab("id")).toThrow(TabServiceError)
+    })
+})
 
 // describe("addTransactionWithEqualSplit", () => {
 //     it("should reject an invalid transaction amount", () => {
@@ -63,7 +92,8 @@
 //         expect(tab.getBalances().get(user3)).toBe(2)
 //     })
 
-//     it("should add the remainder to the correct users when the transaction doesn't divide the number of users", () => {
+//     it("should add the remainder to the correct users when the transaction doesn't divide the number of users",
+//       () => {
 //         const tab = new Tab("foobar", users)
 
 //         tab.addTransactionWithEqualSplit(8, Array.from(tab.getBalances().keys()))

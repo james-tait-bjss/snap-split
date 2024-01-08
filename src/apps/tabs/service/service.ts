@@ -1,5 +1,9 @@
-import { TabRepository } from "../repository";
 import { tabNotExistError } from "./errors";
+
+export interface TabRepository {
+    newTab(name: string, balances: object): string;
+    getTab(id: string): object | undefined;
+}
 
 export class TabService {
     constructor(private readonly tabRepository: TabRepository) { }
@@ -23,7 +27,7 @@ export class TabService {
     }
 }
 
-class Tab {
+export class Tab {
     private balances: Map<string, number>;
 
     constructor(
