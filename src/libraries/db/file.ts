@@ -21,14 +21,33 @@ export class FileDatabase implements DatabaseService {
     }
 
     create(id: string, value: object): void {
+        if (this.store.has(id)) {
+            throw new Error("key already exists")
+        }
+
         this.store.set(id, value)
         this.write()
     }
 
     get(id: string): object | undefined{
+        this.initialiseStoreFromFile()
         const obj = this.store.get(id)
 
         return obj
+    }
+
+    update(id: string, value: object): void {
+        if (!this.store.has(id)) {
+            throw new Error("key doesnt exist")
+        }
+
+        this.store.set(id, value)
+        this.write()
+    }
+
+    delete(id: string): void {
+        this.store.delete(id) 
+        this.write()
     }
 
     private initialiseStoreFromFile() {
