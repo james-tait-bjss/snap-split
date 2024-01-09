@@ -1,18 +1,27 @@
 import { randomUUID } from "crypto"
 import { TabRepository, TabService } from "../../../../src/apps/tabs/service/service"
 import { TabServiceError } from "../../../../src/apps/tabs/service/errors"
+import { TabDTO } from "../../../../src/apps/tabs/repository/dto"
 
 class MockTabRepository implements TabRepository{
-    public tabs = new Map<string, object>()
+    public tabs = new Map<string, TabDTO>()
 
-    newTab(name: string, balances: object): string {
+    newTab(dto: TabDTO): string {
         const id = randomUUID()
-        this.tabs.set(id, {"name": name, "balances": balances})
+        this.tabs.set(id, dto)
         return id
     }
 
-    getTab(id: string): object | undefined {
+    getTab(id: string): TabDTO | undefined {
         return this.tabs.get(id)
+    }
+
+    deleteTab(id: string): void {
+        this.tabs.delete(id)
+    }
+
+    updateTab(id: string, dto: TabDTO): void {
+        this.tabs.set(id, dto)
     }
 }
 
@@ -23,30 +32,38 @@ describe("TabService.newTab", () => {
 
         const id = service.newTab("new_tab", ["user1", "user2", "user3"])
 
-        expect(mock.getTab(id)).toStrictEqual({
-            "name" : "new_tab",
-            "balances": {
-                "user1": 0,
-                "user2": 0,
-                "user3": 0,
-            }
-        })
+        expect(
+            mock.getTab(id)
+        ).toStrictEqual(
+                new TabDTO(
+                    "new_tab", 
+                    {
+                        "user1": 0,
+                        "user2": 0,
+                        "user3": 0,
+                    }
+                )
+            )
     })
 })
 
 describe("TabService.getTab", () => {
     it("should return the tab as an object if it exists", () => {
         const mock = new MockTabRepository()
-        const id = mock.newTab("new_tab", {"user1": 0, "user2": 0})
+        const id = mock.newTab(new TabDTO("new_tab", {"user1": 0, "user2": 0}))
         const service = new TabService(mock)
 
-        expect(service.getTab(id)).toStrictEqual({
-            "name" : "new_tab",
-            "balances": {
-                "user1": 0,
-                "user2": 0,
-            }
-        })
+        expect(
+            service.getTab(id)
+        ).toStrictEqual(
+            new TabDTO(
+                "new_tab",
+                {
+                    "user1": 0,
+                    "user2": 0,
+                }
+            )
+        )
     })
 
     it("should throw a TabServiceError if the tab does not exist in the repository", () => {
@@ -54,6 +71,25 @@ describe("TabService.getTab", () => {
         const service = new TabService(mock)
 
         expect(() => service.getTab("id")).toThrow(TabServiceError)
+    })
+})
+
+describe("TabService.DeleteTab", () => {
+    it("should delete the tab if it exists", () => {
+        const mock = new MockTabRepository()
+        const id = mock.newTab(new TabDTO("new_tab", {"user1": 0, "user2": 0}))
+        const service = new TabService(mock)
+
+        service.deleteTab(id)
+
+        expect(mock.getTab(id)).toStrictEqual(undefined)
+    })
+
+    it("should throw a TabServiceError if the tab does not exist in the repository", () => {
+        const mock = new MockTabRepository()
+        const service = new TabService(mock)
+
+        expect(() => service.deleteTab("id")).toThrow(TabServiceError)
     })
 })
 

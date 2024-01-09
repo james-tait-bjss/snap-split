@@ -1,6 +1,6 @@
-export interface DatabaseService {
-    create(id: string, value: object): void
-    get(id: string): object | undefined
-    update(id: string, value: object): void
+export interface DatabaseService<T> {
+    create(id: string, value: T): void
+    get(id: string): T | undefined
+    update(id: string, value: T): void
     delete(id: string): void
 }

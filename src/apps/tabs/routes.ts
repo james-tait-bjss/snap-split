@@ -14,11 +14,13 @@ export class TabRouter {
         this.router
             .post("/", this.postTab(tabController))
             .get("/:id", this.getTab(tabController))
+            .delete("/:id", this.deleteTab(tabController))
+            .post("/:id/transaction", this.postTransaction(tabController))
     }
 
     getTab(tabController: TabController): ExpressRoutesFunc {
         return function(req: Request, res: Response, next?: NextFunction) {
-            if (next == undefined) {
+            if (next === undefined) {
                 return
             }
 
@@ -29,12 +31,34 @@ export class TabRouter {
     
     postTab(tabController: TabController): ExpressRoutesFunc {
         return function(req: Request, res: Response, next?: NextFunction) {
-            if (next == undefined) {
+            if (next === undefined) {
                 return
             }
 
             logRequest(req)
             tabController.newTab(req, res)
+        }
+    }
+
+    deleteTab(tabController: TabController): ExpressRoutesFunc {
+        return function(req: Request, res: Response, next?: NextFunction) {
+            if (next === undefined) {
+                return
+            }
+
+            logRequest(req)
+            tabController.deleteTab(req, res)
+        }
+    }
+
+    postTransaction(tabController: TabController): ExpressRoutesFunc {
+        return function(req: Request, res: Response, next?: NextFunction) {
+            if (next === undefined) {
+                return
+            }
+
+            logRequest(req)
+            tabController.postTransaction(req, res)
         }
     }
 }

@@ -1,8 +1,12 @@
+import { TabDTO } from "../repository/dto";
+import { TabConverter } from "./converter";
 import { tabNotExistError } from "./errors";
 
 export interface TabRepository {
-    newTab(name: string, balances: object): string;
-    getTab(id: string): object | undefined;
+    newTab(dto: TabDTO): string;
+    getTab(id: string): TabDTO | undefined;
+    deleteTab(id: string): void;
+    updateTab(id: string, dto: TabDTO): void
 }
 
 export class TabService {
@@ -11,9 +15,7 @@ export class TabService {
     newTab(name: string, users: string[]): string {
         const tab = new Tab(name, users)
 
-        const id = this.tabRepository.newTab(tab.name, Object.fromEntries(tab.getBalances().entries()))
-
-        return id
+        return this.tabRepository.newTab(TabConverter.toDTO(tab))
     }
 
     getTab(id: string): object {
@@ -24,6 +26,28 @@ export class TabService {
         }
 
         return tab
+    }
+
+    deleteTab(id: string) {
+        const tab = this.tabRepository.getTab(id)
+
+        if (tab === undefined) {
+            throw tabNotExistError(id)
+        }
+
+        this.tabRepository.deleteTab(id)
+    }
+
+    addTransaction(id: string, amount: number, involvedUsers: string[]) {
+        const tabDTO = this.tabRepository.getTab(id)
+
+        if (tabDTO === undefined) {
+            throw tabNotExistError(id)
+        }
+
+        const tab = TabConverter.fromDTO(tabDTO)
+        tab.addTransactionWithEqualSplit(amount, involvedUsers)
+        this.tabRepository.updateTab(id, TabConverter.toDTO(tab))
     }
 }
 
@@ -41,8 +65,22 @@ export class Tab {
         }
     }
 
+    public static fromBalances(name: string, balances: Map<string, number>): Tab {
+        const tab = new Tab(name, [])
+
+        for (const [userID, balance] of balances) {
+            tab.balances.set(userID, balance) 
+        }
+
+        return tab
+    }
+
     getBalances(): Map<string, number> {
         return new Map(this.balances);
+    }
+
+    addUser(userID: string) {
+        this.balances.set(userID, 0)
     }
 
     addTransactionWithEqualSplit(amount: number, involvedUsers: string[]) {

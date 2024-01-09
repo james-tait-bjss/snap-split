@@ -9,8 +9,8 @@ interface FileSystem {
 }
 
 // TODO: USE QUEUE TO MAKE THREAD SAFE
-export class FileDatabase implements DatabaseService {
-    private store: Map<string, object> = new Map<string, object>();
+export class FileDatabase<T> implements DatabaseService<T> {
+    private store: Map<string, T> = new Map<string, T>();
 
     constructor(private fs: FileSystem, private filepath: string) { 
         if (fs.existsSync(filepath)) {
@@ -20,7 +20,7 @@ export class FileDatabase implements DatabaseService {
         }
     }
 
-    create(id: string, value: object): void {
+    create(id: string, value: T): void {
         if (this.store.has(id)) {
             throw new Error("key already exists")
         }
@@ -29,14 +29,14 @@ export class FileDatabase implements DatabaseService {
         this.write()
     }
 
-    get(id: string): object | undefined{
+    get(id: string): T | undefined{
         this.initialiseStoreFromFile()
         const obj = this.store.get(id)
 
         return obj
     }
 
-    update(id: string, value: object): void {
+    update(id: string, value: T): void {
         if (!this.store.has(id)) {
             throw new Error("key doesnt exist")
         }
@@ -53,11 +53,11 @@ export class FileDatabase implements DatabaseService {
     private initialiseStoreFromFile() {
         const buf = this.fs.readFileSync(this.filepath)
         const json = JSON.parse(buf.toString())
-        this.store = new Map<string, object>(Object.entries(json))
+        this.store = new Map<string, T>(Object.entries(json))
     }
 
     private initialiseEmptyStore() {
-        this.store = new Map<string, object>() 
+        this.store = new Map<string, T>() 
         const dirpath = this.filepath.split('/').slice(0, -1).join('/')
         this.fs.mkdirSync(dirpath, { recursive: true })
         this.write()
@@ -69,10 +69,10 @@ export class FileDatabase implements DatabaseService {
     }
 }
 
-export default function fileDatabaseFactory(filepath: string, fs?: FileSystem): FileDatabase {
+export default function fileDatabaseFactory<T>(filepath: string, fs?: FileSystem): FileDatabase<T> {
     if (fs === undefined) {
-        return new FileDatabase(fslib, filepath)
+        return new FileDatabase<T>(fslib, filepath)
     }
 
-    return new FileDatabase(fs, filepath)
+    return new FileDatabase<T>(fs, filepath)
 }
