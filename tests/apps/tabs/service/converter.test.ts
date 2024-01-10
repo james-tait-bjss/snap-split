@@ -6,7 +6,7 @@ describe("TabConverter", () => {
     describe("fromDTO", () => {
         it("should convert TabDTO to Tab", () => {
             // Arrange
-            const tabDTO = new TabDTO("new-tab", {"user1": 10, "user2": 20})
+            const tabDTO = new TabDTO("new-tab", { user1: 10, user2: 20 })
 
             // Act
             const result = TabConverter.fromDTO(tabDTO)
@@ -32,8 +32,8 @@ describe("TabConverter", () => {
         // Assert
         expect(result.name).toBe("new-tab")
         expect(result.balances).toStrictEqual({
-            "user1": 10,
-            "user2": 20
+            user1: 10,
+            user2: 20,
         })
     })
 })

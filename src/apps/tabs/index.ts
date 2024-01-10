@@ -1,11 +1,11 @@
-import express from 'express';
-import fileDatabaseFactory from '../../libraries/db/file';
-import { TabRepository, TabData } from './repository/repository';
-import { TabService } from './service/service';
+import express from "express"
+import fileDatabaseFactory from "../../libraries/db/file"
+import { TabRepository, TabData } from "./repository/repository"
+import { TabService } from "./service/service"
 import { TabController } from "./controllers"
 import { TabRouter } from "./routes"
 
-export const tabs = express();
+export const tabs = express()
 
 const databaseService = fileDatabaseFactory<TabData>(__dirname + "/.db/db")
 const tabRepository = new TabRepository(databaseService)

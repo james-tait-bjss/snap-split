@@ -3,15 +3,15 @@ import { randomUUID } from "crypto"
 import { TabDTO } from "./dto"
 
 export interface TabData {
-   name: string
-   balances: object
+    name: string
+    balances: object
 }
 
 export class TabRepository {
-    constructor(private readonly db: DatabaseService<TabData>) { }
+    constructor(private readonly db: DatabaseService<TabData>) {}
 
     getTab(id: string): TabDTO | undefined {
-        const tab: TabData| undefined = this.db.get(id)
+        const tab: TabData | undefined = this.db.get(id)
 
         if (tab === undefined) {
             return undefined
@@ -23,13 +23,10 @@ export class TabRepository {
     newTab(dto: TabDTO): string {
         const tabID = randomUUID()
 
-        this.db.create(
-            tabID,
-            {
-                "name": dto.name,
-                "balances": dto.balances
-            }
-        )
+        this.db.create(tabID, {
+            name: dto.name,
+            balances: dto.balances,
+        })
 
         return tabID
     }
@@ -39,12 +36,9 @@ export class TabRepository {
     }
 
     updateTab(id: string, dto: TabDTO) {
-        this.db.update(
-            id,
-            {
-                "name": dto.name,
-                "balances": dto.balances
-            }
-        )
+        this.db.update(id, {
+            name: dto.name,
+            balances: dto.balances,
+        })
     }
 }

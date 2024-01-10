@@ -1,9 +1,12 @@
 import { randomUUID } from "crypto"
-import { TabRepository, TabService } from "../../../../src/apps/tabs/service/service"
+import {
+    TabRepository,
+    TabService,
+} from "../../../../src/apps/tabs/service/service"
 import { TabServiceError } from "../../../../src/apps/tabs/service/errors"
 import { TabDTO } from "../../../../src/apps/tabs/repository/dto"
 
-class MockTabRepository implements TabRepository{
+class MockTabRepository implements TabRepository {
     public tabs = new Map<string, TabDTO>()
 
     newTab(dto: TabDTO): string {
@@ -32,37 +35,27 @@ describe("TabService.newTab", () => {
 
         const id = service.newTab("new_tab", ["user1", "user2", "user3"])
 
-        expect(
-            mock.getTab(id)
-        ).toStrictEqual(
-                new TabDTO(
-                    "new_tab", 
-                    {
-                        "user1": 0,
-                        "user2": 0,
-                        "user3": 0,
-                    }
-                )
-            )
+        expect(mock.getTab(id)).toStrictEqual(
+            new TabDTO("new_tab", {
+                user1: 0,
+                user2: 0,
+                user3: 0,
+            }),
+        )
     })
 })
 
 describe("TabService.getTab", () => {
     it("should return the tab as an object if it exists", () => {
         const mock = new MockTabRepository()
-        const id = mock.newTab(new TabDTO("new_tab", {"user1": 0, "user2": 0}))
+        const id = mock.newTab(new TabDTO("new_tab", { user1: 0, user2: 0 }))
         const service = new TabService(mock)
 
-        expect(
-            service.getTab(id)
-        ).toStrictEqual(
-            new TabDTO(
-                "new_tab",
-                {
-                    "user1": 0,
-                    "user2": 0,
-                }
-            )
+        expect(service.getTab(id)).toStrictEqual(
+            new TabDTO("new_tab", {
+                user1: 0,
+                user2: 0,
+            }),
         )
     })
 
@@ -77,7 +70,7 @@ describe("TabService.getTab", () => {
 describe("TabService.DeleteTab", () => {
     it("should delete the tab if it exists", () => {
         const mock = new MockTabRepository()
-        const id = mock.newTab(new TabDTO("new_tab", {"user1": 0, "user2": 0}))
+        const id = mock.newTab(new TabDTO("new_tab", { user1: 0, user2: 0 }))
         const service = new TabService(mock)
 
         service.deleteTab(id)

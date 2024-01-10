@@ -1,16 +1,19 @@
-import express, { NextFunction, Request, Response } from 'express';
-import { TabController } from './controllers'
-import logRequest from '../../libraries/middleware/logRequest';
+import express, { NextFunction, Request, Response } from "express"
+import { TabController } from "./controllers"
+import logRequest from "../../libraries/middleware/logRequest"
 
-
-type ExpressRoutesFunc = (req: Request, res: Response, next?: NextFunction) => void | Promise<void>
+type ExpressRoutesFunc = (
+    req: Request,
+    res: Response,
+    next?: NextFunction,
+) => void | Promise<void>
 
 export class TabRouter {
     public router: express.Router
 
     constructor(tabController: TabController) {
         this.router = express.Router()
-        
+
         this.router
             .post("/", this.postTab(tabController))
             .get("/:id", this.getTab(tabController))
@@ -19,7 +22,7 @@ export class TabRouter {
     }
 
     getTab(tabController: TabController): ExpressRoutesFunc {
-        return function(req: Request, res: Response, next?: NextFunction) {
+        return function (req: Request, res: Response, next?: NextFunction) {
             if (next === undefined) {
                 return
             }
@@ -28,9 +31,9 @@ export class TabRouter {
             tabController.getTab(req, res)
         }
     }
-    
+
     postTab(tabController: TabController): ExpressRoutesFunc {
-        return function(req: Request, res: Response, next?: NextFunction) {
+        return function (req: Request, res: Response, next?: NextFunction) {
             if (next === undefined) {
                 return
             }
@@ -41,7 +44,7 @@ export class TabRouter {
     }
 
     deleteTab(tabController: TabController): ExpressRoutesFunc {
-        return function(req: Request, res: Response, next?: NextFunction) {
+        return function (req: Request, res: Response, next?: NextFunction) {
             if (next === undefined) {
                 return
             }
@@ -52,7 +55,7 @@ export class TabRouter {
     }
 
     postTransaction(tabController: TabController): ExpressRoutesFunc {
-        return function(req: Request, res: Response, next?: NextFunction) {
+        return function (req: Request, res: Response, next?: NextFunction) {
             if (next === undefined) {
                 return
             }

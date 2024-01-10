@@ -10,9 +10,12 @@ interface FileSystem {
 
 // TODO: USE QUEUE TO MAKE THREAD SAFE
 export class FileDatabase<T> implements DatabaseService<T> {
-    private store: Map<string, T> = new Map<string, T>();
+    private store: Map<string, T> = new Map<string, T>()
 
-    constructor(private fs: FileSystem, private filepath: string) { 
+    constructor(
+        private fs: FileSystem,
+        private filepath: string,
+    ) {
         if (fs.existsSync(filepath)) {
             this.initialiseStoreFromFile()
         } else {
@@ -29,7 +32,7 @@ export class FileDatabase<T> implements DatabaseService<T> {
         this.write()
     }
 
-    get(id: string): T | undefined{
+    get(id: string): T | undefined {
         this.initialiseStoreFromFile()
         const obj = this.store.get(id)
 
@@ -46,7 +49,7 @@ export class FileDatabase<T> implements DatabaseService<T> {
     }
 
     delete(id: string): void {
-        this.store.delete(id) 
+        this.store.delete(id)
         this.write()
     }
 
@@ -57,8 +60,8 @@ export class FileDatabase<T> implements DatabaseService<T> {
     }
 
     private initialiseEmptyStore() {
-        this.store = new Map<string, T>() 
-        const dirpath = this.filepath.split('/').slice(0, -1).join('/')
+        this.store = new Map<string, T>()
+        const dirpath = this.filepath.split("/").slice(0, -1).join("/")
         this.fs.mkdirSync(dirpath, { recursive: true })
         this.write()
     }
@@ -69,7 +72,10 @@ export class FileDatabase<T> implements DatabaseService<T> {
     }
 }
 
-export default function fileDatabaseFactory<T>(filepath: string, fs?: FileSystem): FileDatabase<T> {
+export default function fileDatabaseFactory<T>(
+    filepath: string,
+    fs?: FileSystem,
+): FileDatabase<T> {
     if (fs === undefined) {
         return new FileDatabase<T>(fslib, filepath)
     }

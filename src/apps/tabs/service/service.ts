@@ -1,16 +1,16 @@
-import { TabDTO } from "../repository/dto";
-import { TabConverter } from "./converter";
-import { tabNotExistError } from "./errors";
+import { TabDTO } from "../repository/dto"
+import { TabConverter } from "./converter"
+import { tabNotExistError } from "./errors"
 
 export interface TabRepository {
-    newTab(dto: TabDTO): string;
-    getTab(id: string): TabDTO | undefined;
-    deleteTab(id: string): void;
+    newTab(dto: TabDTO): string
+    getTab(id: string): TabDTO | undefined
+    deleteTab(id: string): void
     updateTab(id: string, dto: TabDTO): void
 }
 
 export class TabService {
-    constructor(private readonly tabRepository: TabRepository) { }
+    constructor(private readonly tabRepository: TabRepository) {}
 
     newTab(name: string, users: string[]): string {
         const tab = new Tab(name, users)
@@ -22,7 +22,7 @@ export class TabService {
         const tab = this.tabRepository.getTab(id)
 
         if (tab === undefined) {
-            throw tabNotExistError(id) 
+            throw tabNotExistError(id)
         }
 
         return tab
@@ -52,31 +52,34 @@ export class TabService {
 }
 
 export class Tab {
-    private balances: Map<string, number>;
+    private balances: Map<string, number>
 
     constructor(
         public name: string,
-        users: string[]
+        users: string[],
     ) {
-        this.balances = new Map<string, number>();
+        this.balances = new Map<string, number>()
 
         for (const user of users) {
             this.balances.set(user, 0)
         }
     }
 
-    public static fromBalances(name: string, balances: Map<string, number>): Tab {
+    public static fromBalances(
+        name: string,
+        balances: Map<string, number>,
+    ): Tab {
         const tab = new Tab(name, [])
 
         for (const [userID, balance] of balances) {
-            tab.balances.set(userID, balance) 
+            tab.balances.set(userID, balance)
         }
 
         return tab
     }
 
     getBalances(): Map<string, number> {
-        return new Map(this.balances);
+        return new Map(this.balances)
     }
 
     addUser(userID: string) {
@@ -90,7 +93,7 @@ export class Tab {
         const equalSplit = Math.floor(amount / involvedUsers.length)
 
         let numIncreases = 0
-        const newBalances = new Map<string, number>(this.balances);
+        const newBalances = new Map<string, number>(this.balances)
 
         for (const userID of involvedUsers) {
             const currBalance = this.getBalance(userID)
@@ -108,19 +111,21 @@ export class Tab {
 
     private validateTransactionInput(amount: number, involvedUsers: string[]) {
         if (isNaN(amount) || amount <= 0) {
-            throw new Error("Transaction amount should be a valid number greater than zero");
+            throw new Error(
+                "Transaction amount should be a valid number greater than zero",
+            )
         }
 
         if (involvedUsers.length === 0) {
-            throw new Error("Must have at least one involved user");
+            throw new Error("Must have at least one involved user")
         }
     }
 
     private getBalance(userID: string): number {
-        const balance = this.balances.get(userID);
+        const balance = this.balances.get(userID)
         if (balance === undefined) {
-            throw new Error("User not found in tab");
+            throw new Error("User not found in tab")
         }
-        return balance;
-    } 
+        return balance
+    }
 }

@@ -1,5 +1,5 @@
-import { Request, Response } from "express";
-import { TabServiceError } from "./service/errors";
+import { Request, Response } from "express"
+import { TabServiceError } from "./service/errors"
 
 export interface TabService {
     newTab(name: string, users: string[]): string
@@ -9,30 +9,30 @@ export interface TabService {
 }
 
 export class TabController {
-    constructor(private readonly tabService: TabService) { }
-    
+    constructor(private readonly tabService: TabService) {}
+
     newTab(req: Request, res: Response) {
         const id = this.tabService.newTab(req.body["name"], req.body["users"])
 
         res.send(id)
     }
 
-    getTab(req: Request,  res: Response) {
+    getTab(req: Request, res: Response) {
         try {
             const tab = this.tabService.getTab(req.params.id)
             res.send(tab)
-        } catch(err) {
+        } catch (err) {
             if (err instanceof TabServiceError) {
                 handleTabServiceError(err, res)
             }
         }
-    }   
+    }
 
     deleteTab(req: Request, res: Response) {
         try {
             this.tabService.deleteTab(req.params.id)
             res.sendStatus(200)
-        } catch(err) {
+        } catch (err) {
             if (err instanceof TabServiceError) {
                 handleTabServiceError(err, res)
             }
@@ -41,7 +41,11 @@ export class TabController {
 
     postTransaction(req: Request, res: Response) {
         try {
-            this.tabService.addTransaction(req.params.id, req.body["amount"], req.body["users"])
+            this.tabService.addTransaction(
+                req.params.id,
+                req.body["amount"],
+                req.body["users"],
+            )
             res.sendStatus(200)
         } catch (err) {
             if (err instanceof TabServiceError) {
@@ -52,7 +56,7 @@ export class TabController {
 }
 
 function handleTabServiceError(err: TabServiceError, res: Response) {
-    switch(err.name) {
+    switch (err.name) {
         case "TAB_NOT_EXIST_ERROR":
             res.sendStatus(404)
     }

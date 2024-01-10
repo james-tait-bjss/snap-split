@@ -1,7 +1,7 @@
-import { app } from "./index";
+import { app } from "./index"
 
-const port = 3000;
+const port = 3000
 
 app.listen(port, () => {
-  return console.log(`Express is listening at http://localhost:${port}`);
-});
+    return console.log(`Express is listening at http://localhost:${port}`)
+})

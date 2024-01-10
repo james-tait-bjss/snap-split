@@ -5,8 +5,8 @@ export class ErrorBase<T extends string> extends Error {
 
     constructor({
         name,
-        message, 
-        cause
+        message,
+        cause,
     }: {
         name: T
         message: string
@@ -17,4 +17,4 @@ export class ErrorBase<T extends string> extends Error {
         this.message = message
         this.cause = cause
     }
-} 
+}
