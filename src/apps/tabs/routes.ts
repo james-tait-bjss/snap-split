@@ -1,67 +1,46 @@
-import express, { NextFunction, Request, Response } from "express"
-import { TabController } from "./controllers"
-import logRequest from "../../libraries/middleware/logRequest"
+import { Request, Response, Router } from "express"
+import { ExpressRoutesFunc } from "../expressRouter"
 
-type ExpressRoutesFunc = (
-    req: Request,
-    res: Response,
-    next?: NextFunction,
-) => void | Promise<void>
+export interface TabController {
+    getTab: ExpressRoutesFunc
+    newTab: ExpressRoutesFunc
+    deleteTab: ExpressRoutesFunc
+    postTransaction: ExpressRoutesFunc
+}
 
-export class TabRouter {
-    public router: express.Router
+export interface RequestLogger {
+    logRequest(req: Request): void
+}
 
-    constructor(tabController: TabController) {
-        this.router = express.Router()
-
-        this.router
-            .post("/", this.postTab(tabController))
-            .get("/:id", this.getTab(tabController))
-            .delete("/:id", this.deleteTab(tabController))
-            .post("/:id/transaction", this.postTransaction(tabController))
+export class TabRouteHandler {
+    constructor(
+        public router: Router,
+        private tabController: TabController,
+        private requestLogger: RequestLogger,
+    ) {
+        this.router.post("/", this.postTab)
+        this.router.get("/:id", this.getTab)
+        this.router.delete("/:id", this.deleteTab)
+        this.router.post("/:id/transaction", this.postTransaction)
     }
 
-    getTab(tabController: TabController): ExpressRoutesFunc {
-        return function (req: Request, res: Response, next?: NextFunction) {
-            if (next === undefined) {
-                return
-            }
-
-            logRequest(req)
-            tabController.getTab(req, res)
-        }
+    private getTab(req: Request, res: Response) {
+        this.requestLogger.logRequest(req)
+        this.tabController.getTab(req, res)
     }
 
-    postTab(tabController: TabController): ExpressRoutesFunc {
-        return function (req: Request, res: Response, next?: NextFunction) {
-            if (next === undefined) {
-                return
-            }
-
-            logRequest(req)
-            tabController.newTab(req, res)
-        }
+    private postTab(req: Request, res: Response) {
+        this.requestLogger.logRequest(req)
+        this.tabController.newTab(req, res)
     }
 
-    deleteTab(tabController: TabController): ExpressRoutesFunc {
-        return function (req: Request, res: Response, next?: NextFunction) {
-            if (next === undefined) {
-                return
-            }
-
-            logRequest(req)
-            tabController.deleteTab(req, res)
-        }
+    private deleteTab(req: Request, res: Response) {
+        this.requestLogger.logRequest(req)
+        this.tabController.deleteTab(req, res)
     }
 
-    postTransaction(tabController: TabController): ExpressRoutesFunc {
-        return function (req: Request, res: Response, next?: NextFunction) {
-            if (next === undefined) {
-                return
-            }
-
-            logRequest(req)
-            tabController.postTransaction(req, res)
-        }
+    private postTransaction(req: Request, res: Response) {
+        this.requestLogger.logRequest(req)
+        this.tabController.postTransaction(req, res)
     }
 }
