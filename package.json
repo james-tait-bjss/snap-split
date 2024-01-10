@@ -10,7 +10,8 @@
     "start": "ts-node src/server.ts",
     "start:dev": "node --watch -r ts-node/register src/server.ts",
     "lint": "eslint . --ext .ts",
-    "test": "jest"
+    "test": "jest",
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "",
