@@ -43,8 +43,8 @@ export class TabController {
         try {
             this.tabService.addTransaction(
                 req.params.id,
-                req.body["amount"],
-                req.body["users"],
+                req.body.amount,
+                req.body.users,
             )
             res.sendStatus(200)
         } catch (err) {
