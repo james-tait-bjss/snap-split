@@ -1,6 +1,6 @@
 import express from "express"
 import fileDatabaseFactory from "../../libraries/db/file"
-import { RequestLogger } from "../../libraries/middleware/logRequest"
+import { RequestLogger } from "../../libraries/middleware/requestLogger"
 import { TabController } from "./controllers"
 import { TabData, TabRepository } from "./repository/repository"
 import { TabRouteHandler } from "./routes"

@@ -22,24 +22,27 @@ export class TabRouteHandler {
         this.router.get("/:id", this.getTab)
         this.router.delete("/:id", this.deleteTab)
         this.router.post("/:id/transaction", this.postTransaction)
+
+        console.log(requestLogger)
+        console.log(tabController)
     }
 
-    private getTab(req: Request, res: Response) {
+    private getTab = (req: Request, res: Response) => {
         this.requestLogger.logRequest(req)
         this.tabController.getTab(req, res)
     }
 
-    private postTab(req: Request, res: Response) {
+    private postTab = (req: Request, res: Response) => {
         this.requestLogger.logRequest(req)
         this.tabController.newTab(req, res)
     }
 
-    private deleteTab(req: Request, res: Response) {
+    private deleteTab = (req: Request, res: Response) => {
         this.requestLogger.logRequest(req)
         this.tabController.deleteTab(req, res)
     }
 
-    private postTransaction(req: Request, res: Response) {
+    private postTransaction = (req: Request, res: Response) => {
         this.requestLogger.logRequest(req)
         this.tabController.postTransaction(req, res)
     }
