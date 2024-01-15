@@ -3,8 +3,8 @@ import { TabConverter } from "./converter"
 import { tabNotExistError } from "./errors"
 
 export interface TabRepository {
-    newTab(dto: TabDTO): string
-    getTab(id: string): TabDTO | undefined
+    newTab(dto: TabDTO): Promise<string>
+    getTab(id: string): Promise<TabDTO | null>
     deleteTab(id: string): void
     updateTab(id: string, dto: TabDTO): void
 }
@@ -12,36 +12,36 @@ export interface TabRepository {
 export class TabService {
     constructor(private readonly tabRepository: TabRepository) {}
 
-    newTab(name: string, users: string[]): string {
+    async newTab(name: string, users: string[]): Promise<string> {
         const tab = new Tab(name, users)
 
-        return this.tabRepository.newTab(TabConverter.toDTO(tab))
+        return await this.tabRepository.newTab(TabConverter.toDTO(tab))
     }
 
-    getTab(id: string): object {
-        const tab = this.tabRepository.getTab(id)
+    async getTab(id: string): Promise<object> {
+        const tab = await this.tabRepository.getTab(id)
 
-        if (tab === undefined) {
+        if (tab === null) {
             throw tabNotExistError(id)
         }
 
         return tab
     }
 
-    deleteTab(id: string) {
-        const tab = this.tabRepository.getTab(id)
+    async deleteTab(id: string) {
+        const tab = await this.tabRepository.getTab(id)
 
-        if (tab === undefined) {
+        if (tab === null) {
             throw tabNotExistError(id)
         }
 
         this.tabRepository.deleteTab(id)
     }
 
-    addTransaction(id: string, amount: number, involvedUsers: string[]) {
-        const tabDTO = this.tabRepository.getTab(id)
+    async addTransaction(id: string, amount: number, involvedUsers: string[]) {
+        const tabDTO = await this.tabRepository.getTab(id)
 
-        if (tabDTO === undefined) {
+        if (tabDTO === null) {
             throw tabNotExistError(id)
         }
 

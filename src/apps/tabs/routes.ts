@@ -22,9 +22,6 @@ export class TabRouteHandler {
         this.router.get("/:id", this.getTab)
         this.router.delete("/:id", this.deleteTab)
         this.router.post("/:id/transaction", this.postTransaction)
-
-        console.log(requestLogger)
-        console.log(tabController)
     }
 
     private getTab = (req: Request, res: Response) => {

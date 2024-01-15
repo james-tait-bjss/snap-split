@@ -32,17 +32,17 @@ describe("TabController", () => {
             }
 
             const expectedID = "uuid"
-            mockTabService.newTab.mockReturnValue(expectedID)
+            mockTabService.newTab.mockResolvedValue(expectedID)
 
             // Act
-            controller.newTab(req as Request, mockResponse)
-
-            // Assert
-            expect(mockTabService.newTab).toHaveBeenCalledWith("new-tab", [
-                "user1",
-                "user2",
-            ])
-            expect(mockResponse.send).toHaveBeenCalledWith(expectedID)
+            controller.newTab(req as Request, mockResponse).then(() => {
+                // Assert
+                expect(mockTabService.newTab).toHaveBeenCalledWith("new-tab", [
+                    "user1",
+                    "user2",
+                ])
+                expect(mockResponse.send).toHaveBeenCalledWith(expectedID)
+            })
         })
     })
 
@@ -57,14 +57,14 @@ describe("TabController", () => {
             }
 
             const expectedTab = { name: "tab" }
-            mockTabService.getTab.mockReturnValue(expectedTab)
+            mockTabService.getTab.mockResolvedValue(expectedTab)
 
             // Act
-            controller.getTab(req as Request, mockResponse)
-
-            // Assert
-            expect(mockTabService.getTab).toHaveBeenCalledWith("uuid")
-            expect(mockResponse.send).toHaveBeenCalledWith(expectedTab)
+            controller.getTab(req as Request, mockResponse).then(() => {
+                // Assert
+                expect(mockTabService.getTab).toHaveBeenCalledWith("uuid")
+                expect(mockResponse.send).toHaveBeenCalledWith(expectedTab)
+            })
         })
 
         it("should return a 404 NOT_FOUND if the service throws a TAB_NOT_EXIST_ERROR", () => {
@@ -81,11 +81,11 @@ describe("TabController", () => {
             })
 
             // Act
-            controller.getTab(req as Request, mockResponse)
-
-            // Assert
-            expect(mockTabService.getTab).toHaveBeenCalledWith("uuid")
-            expect(mockResponse.sendStatus).toHaveBeenCalledWith(404)
+            controller.getTab(req as Request, mockResponse).then(() => {
+                // Assert
+                expect(mockTabService.getTab).toHaveBeenCalledWith("uuid")
+                expect(mockResponse.sendStatus).toHaveBeenCalledWith(404)
+            })
         })
     })
 

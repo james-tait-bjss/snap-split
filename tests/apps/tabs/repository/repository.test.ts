@@ -1,76 +1,88 @@
-import { Volume } from "memfs"
+import { DatabaseService } from "../../../../src/apps/db"
+import { TabDTO } from "../../../../src/apps/tabs/repository/dto"
 import {
     TabData,
     TabRepository,
 } from "../../../../src/apps/tabs/repository/repository"
-import fileDatabaseFactory from "../../../../src/libraries/db/file"
-import { TabDTO } from "../../../../src/apps/tabs/repository/dto"
 
-describe("TabRepository.getTab", () => {
-    it("should return undefined if record does not exist", () => {
-        const repo = repoFromJSON({})
+describe("TabRepository", () => {
+    let mockDatabaseService: jest.Mocked<DatabaseService<string, TabData>>
 
-        expect(repo.getTab("id")).toStrictEqual(undefined)
+    beforeEach(() => {
+        mockDatabaseService = {
+            create: jest.fn(),
+            get: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+        } as jest.Mocked<DatabaseService<string, TabData>>
     })
 
-    it("should return the record if it exists", () => {
-        const record = {
-            name: "new_tab",
-            balances: { user1: 20, user2: 40 },
-        }
+    describe("getTab", () => {
+        it("should return null if record does not exist", () => {
+            // Arrange
+            const repo = new TabRepository(mockDatabaseService)
 
-        const repo = repoFromJSON({ id: record })
+            mockDatabaseService.get.mockResolvedValue(null)
 
-        expect(repo.getTab("id")).toStrictEqual(
-            new TabDTO(record.name, record.balances),
-        )
+            // Act
+            const result = repo.getTab("id")
+
+            // Assert
+            expect(result).resolves.toBe(null)
+            expect(mockDatabaseService.get).toHaveBeenCalledWith("id")
+        })
+
+        it("should return the record if it exists", () => {
+            // Arrange
+            const repo = new TabRepository(mockDatabaseService)
+
+            const recordInDB = {
+                name: "new_tab",
+                balances: { user1: 20, user2: 40 },
+            }
+            mockDatabaseService.get.mockResolvedValue(recordInDB)
+
+            // Act
+            const result = repo.getTab("id")
+
+            // Assert
+            expect(result).resolves.toEqual(recordInDB)
+            expect(mockDatabaseService.get).toHaveBeenCalledWith("id")
+        })
+    })
+
+    describe("newTab", () => {
+        it("should create a new tab with random id and return the id", () => {
+            // Arrange
+            const repo = new TabRepository(mockDatabaseService)
+
+            const createdID = "id"
+            mockDatabaseService.create.mockResolvedValue(createdID)
+
+            // Act
+            const result = repo.newTab(
+                new TabDTO("new-tab", { user1: 20, user2: 40 }),
+            )
+
+            // Assert
+            expect(result).resolves.toBe(createdID)
+            expect(mockDatabaseService.create).toHaveBeenCalledWith({
+                name: "new-tab",
+                balances: { user1: 20, user2: 40 },
+            })
+        })
+    })
+
+    describe("deleteTab", () => {
+        it("should delete a tab if one exists with that id", () => {
+            // Arrange
+            const repo = new TabRepository(mockDatabaseService)
+
+            // Act
+            repo.deleteTab("id").then(() => {
+                // Assert
+                expect(mockDatabaseService.delete).toHaveBeenCalledWith("id")
+            })
+        })
     })
 })
-
-describe("TabRepository.newTab", () => {
-    it("should create a new tab with random id and return the id", () => {
-        const repo = repoFromJSON({})
-
-        const record = {
-            name: "new_tab",
-            balances: { user1: 20, user2: 40 },
-        }
-
-        const id = repo.newTab(new TabDTO(record.name, record.balances))
-
-        expect(repo["db"].get(id)).toStrictEqual(record)
-    })
-})
-
-describe("TabRepository.deleteTab", () => {
-    it("should delete a tab if one exists with that id", () => {
-        const record = {
-            name: "new_tab",
-            balances: { user1: 20, user2: 40 },
-        }
-
-        const repo = repoFromJSON({ id: record })
-
-        repo.deleteTab("id")
-
-        expect(repo["db"].get("id")).toStrictEqual(undefined)
-    })
-
-    it("should do nothing if no tab exists with that id", () => {
-        const repo = repoFromJSON({})
-
-        repo.deleteTab("id")
-
-        expect(repo["db"].get("id")).toStrictEqual(undefined)
-    })
-})
-
-function repoFromJSON(json: object): TabRepository {
-    const vol = Volume.fromJSON({
-        "/file.db": JSON.stringify(json),
-    })
-    const db = fileDatabaseFactory<TabData>("/file.db", vol)
-    const repo = new TabRepository(db)
-
-    return repo
-}

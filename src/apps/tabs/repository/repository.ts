@@ -1,5 +1,4 @@
 import { DatabaseService } from "../../db"
-import { randomUUID } from "crypto"
 import { TabDTO } from "./dto"
 
 export interface TabData {
@@ -8,34 +7,32 @@ export interface TabData {
 }
 
 export class TabRepository {
-    constructor(private readonly db: DatabaseService<TabData>) {}
+    constructor(private readonly db: DatabaseService<string, TabData>) {}
 
-    getTab(id: string): TabDTO | undefined {
-        const tab: TabData | undefined = this.db.get(id)
+    async getTab(id: string): Promise<TabDTO | null> {
+        const tab: TabData | null = await this.db.get(id)
 
-        if (tab === undefined) {
-            return undefined
+        if (tab === null) {
+            return null
         }
 
         return new TabDTO(tab.name, tab.balances)
     }
 
-    newTab(dto: TabDTO): string {
-        const tabID = randomUUID()
-
-        this.db.create(tabID, {
+    async newTab(dto: TabDTO): Promise<string> {
+        const id = await this.db.create({
             name: dto.name,
             balances: dto.balances,
         })
 
-        return tabID
+        return id
     }
 
-    deleteTab(id: string) {
+    async deleteTab(id: string) {
         this.db.delete(id)
     }
 
-    updateTab(id: string, dto: TabDTO) {
+    async updateTab(id: string, dto: TabDTO) {
         this.db.update(id, {
             name: dto.name,
             balances: dto.balances,

@@ -2,8 +2,8 @@ import { Request, Response } from "express"
 import { TabServiceError } from "./service/errors"
 
 export interface TabService {
-    newTab(name: string, users: string[]): string
-    getTab(id: string): object
+    newTab(name: string, users: string[]): Promise<string>
+    getTab(id: string): Promise<object>
     deleteTab(id: string): void
     addTransaction(id: string, amount: number, includedUsers: string[]): void
 }
@@ -11,15 +11,15 @@ export interface TabService {
 export class TabController {
     constructor(private readonly tabService: TabService) {}
 
-    newTab(req: Request, res: Response) {
-        const id = this.tabService.newTab(req.body["name"], req.body["users"])
+    async newTab(req: Request, res: Response) {
+        const id = await this.tabService.newTab(req.body["name"], req.body["users"])
 
         res.send(id)
     }
 
-    getTab(req: Request, res: Response) {
+    async getTab(req: Request, res: Response) {
         try {
-            const tab = this.tabService.getTab(req.params.id)
+            const tab = await this.tabService.getTab(req.params.id)
             res.send(tab)
         } catch (err) {
             if (err instanceof TabServiceError) {

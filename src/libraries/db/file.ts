@@ -1,7 +1,8 @@
-import { DatabaseService } from "../../apps/db"
+import { randomUUID } from "crypto"
 import * as fslib from "fs"
+import { DatabaseService } from "../../apps/db"
 
-interface FileSystem {
+export interface FileSystem {
     existsSync(filepath: string): boolean
     mkdirSync(filepath: string, options?: object): void
     readFileSync(filepath: string): string | Buffer
@@ -9,7 +10,7 @@ interface FileSystem {
 }
 
 // TODO: USE QUEUE TO MAKE THREAD SAFE
-export class FileDatabase<T> implements DatabaseService<T> {
+export class FileDatabase<T> implements DatabaseService<string, T> {
     private store: Map<string, T> = new Map<string, T>()
 
     constructor(
@@ -23,20 +24,27 @@ export class FileDatabase<T> implements DatabaseService<T> {
         }
     }
 
-    create(id: string, value: T): void {
-        if (this.store.has(id)) {
-            throw new Error("key already exists")
-        }
+    create(value: T): Promise<string> {
+        return new Promise<string>((resolve) => {
+            const id = randomUUID()
+            this.store.set(id, value)
+            this.write()
 
-        this.store.set(id, value)
-        this.write()
+            resolve(id)
+        })
     }
 
-    get(id: string): T | undefined {
-        this.initialiseStoreFromFile()
-        const obj = this.store.get(id)
+    get(id: string): Promise<T | null> {
+        return new Promise<T | null>((resolve) => {
+            this.initialiseStoreFromFile()
+            const obj = this.store.get(id)
 
-        return obj
+            if (obj === undefined) {
+                resolve(null)
+            }
+
+            resolve(obj as T)
+        })
     }
 
     update(id: string, value: T): void {

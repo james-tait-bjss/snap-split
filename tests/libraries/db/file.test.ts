@@ -1,106 +1,161 @@
+import * as crypto from "crypto"
 import { Volume } from "memfs"
-import fileDatabaseFactory from "../../../src/libraries/db/file"
+import fileDatabaseFactory, {
+    FileDatabase,
+    FileSystem,
+} from "../../../src/libraries/db/file"
 
-describe("fileDatabaseFactory", () => {
-    it("should create an empty database file if one does not exist", () => {
-        const vol = Volume.fromJSON({})
+jest.mock("crypto")
 
-        void fileDatabaseFactory("/doesnt/exist.db", vol)
+describe("FileDatabase", () => {
+    let mockFileSystem: jest.Mocked<FileSystem>
+    let mockRandomUUID: jest.Mock
 
-        expect(vol.toJSON()).toEqual({ "/doesnt/exist.db": "{}" })
+    beforeEach(() => {
+        mockFileSystem = {
+            existsSync: jest.fn(),
+            mkdirSync: jest.fn(),
+            readFileSync: jest.fn(),
+            writeFileSync: jest.fn(),
+        } as jest.Mocked<FileSystem>
+
+        mockRandomUUID = crypto.randomUUID as jest.Mock
     })
 
-    it("should import database file if it does exist", () => {
-        const json = {
-            "/does/exist.db": '{"hello": "world"}',
-        }
-        const vol = Volume.fromJSON(json)
+    describe("constructor", () => {
+        it("should initialise the store from a file if one exists", () => {
+            // Arrange
+            mockFileSystem.existsSync.mockReturnValue(true)
+            mockFileSystem.readFileSync.mockReturnValue(`{"hello": "world"}`)
 
-        const fileDB = fileDatabaseFactory("/does/exist.db", vol)
+            // Act
+            const db = new FileDatabase(mockFileSystem, "path")
 
-        expect(fileDB.get("hello")).toEqual("world")
-    })
-})
+            // Assert
+            expect(mockFileSystem.readFileSync).toHaveBeenCalledWith("path")
+            expect(db["store"]).toEqual(
+                new Map<string, string>([["hello", "world"]]),
+            )
+        })
 
-describe("get", () => {
-    it("should retrieve an element that exists", () => {
-        const json = {
-            "/file.db": '{"hello": "world"}',
-        }
-        const vol = Volume.fromJSON(json)
-        const fileDB = fileDatabaseFactory("/file.db", vol)
+        it("should initialise a blank store and write a new file if one doesn't exist", () => {
+            // Arrange
+            mockFileSystem.existsSync.mockReturnValue(false)
 
-        expect(fileDB.get("hello")).toEqual("world")
-    })
+            // Act
+            const db = new FileDatabase(mockFileSystem, "/path/to/db")
 
-    it("should return an undefined object if the element does not exist", () => {
-        const vol = Volume.fromJSON({})
-        const fileDB = fileDatabaseFactory("/file.db", vol)
-
-        expect(fileDB.get("hello")).toEqual(undefined)
-    })
-})
-
-describe("create", () => {
-    it("should create a database entry if the key does not exist", () => {
-        const vol = Volume.fromJSON({})
-        const fileDB = fileDatabaseFactory("/file.db", vol)
-
-        fileDB.create("foo", { bar: "baz" })
-        expect(fileDB.get("foo")).toEqual({ bar: "baz" })
+            // Assert
+            expect(mockFileSystem.mkdirSync).toHaveBeenCalledWith("/path/to", {
+                recursive: true,
+            })
+            expect(db["store"]).toEqual(new Map<string, string>())
+            expect(mockFileSystem.writeFileSync).toHaveBeenCalledWith(
+                "/path/to/db",
+                "{}",
+            )
+        })
     })
 
-    it("should reject a creation if the key does exist", () => {
-        const json = {
-            "/file.db": '{"foo": {"bar": "baz"}}',
-        }
-        const vol = Volume.fromJSON(json)
-        const fileDB = fileDatabaseFactory("/file.db", vol)
+    describe("create", () => {
+        it("should create a database entry and return the new key", () => {
+            // Arrange
+            const vol = Volume.fromJSON({})
+            const fileDB = fileDatabaseFactory("/file.db", vol)
 
-        expect(() => fileDB.create("foo", { bar2: "baz2" })).toThrow(Error)
-    })
-})
+            const generatedID = "id"
+            mockRandomUUID.mockReturnValue(generatedID)
 
-describe("update", () => {
-    it("should reject an update if the key does not exist", () => {
-        const vol = Volume.fromJSON({})
-        const fileDB = fileDatabaseFactory("/file.db", vol)
+            // Act
+            const result = fileDB.create({ bar: "baz" })
 
-        expect(() => fileDB.update("foo", { bar: "baz" })).toThrow(Error)
-    })
-
-    it("should update a record if the key does exist", () => {
-        const json = {
-            "/file.db": '{"foo": {"bar": "baz"}}',
-        }
-        const vol = Volume.fromJSON(json)
-        const fileDB = fileDatabaseFactory("/file.db", vol)
-
-        fileDB.update("foo", { bar2: "baz2" })
-
-        expect(fileDB.get("foo")).toEqual({ bar2: "baz2" })
-    })
-})
-
-describe("delete", () => {
-    it("should do nothing if the key does not exist", () => {
-        const vol = Volume.fromJSON({})
-        const fileDB = fileDatabaseFactory("/file.db", vol)
-
-        fileDB.delete("foo")
-
-        expect(fileDB.get("foo")).toEqual(undefined)
+            // Assert
+            expect(result).resolves.toBe(generatedID)
+            expect(fileDB.get(generatedID)).resolves.toEqual({ bar: "baz" })
+        })
     })
 
-    it("should delete a record if the key does exist", () => {
-        const json = {
-            "/file.db": '{"foo": {"bar": "baz"}}',
-        }
-        const vol = Volume.fromJSON(json)
-        const fileDB = fileDatabaseFactory("/file.db", vol)
+    describe("get", () => {
+        it("should retrieve an element that exists", () => {
+            // Arrange
+            const json = {
+                "/file.db": '{"hello": "world"}',
+            }
+            const vol = Volume.fromJSON(json)
+            const fileDB = fileDatabaseFactory("/file.db", vol)
 
-        fileDB.delete("foo")
+            // Act
+            const result = fileDB.get("hello")
 
-        expect(fileDB.get("foo")).toEqual(undefined)
+            // Assert
+            expect(result).resolves.toBe("world")
+        })
+
+        it("should return an undefined object if the element does not exist", () => {
+            // Arrange
+            const vol = Volume.fromJSON({})
+            const fileDB = fileDatabaseFactory("/file.db", vol)
+
+            // Act
+            const result = fileDB.get("hello")
+
+            // Assert
+            expect(result).resolves.toEqual(null)
+        })
+    })
+
+    describe("update", () => {
+        it("should reject an update if the key does not exist", () => {
+            // Arrange
+            const vol = Volume.fromJSON({})
+            const fileDB = fileDatabaseFactory("/file.db", vol)
+
+            // Act & Assert
+            expect(() => fileDB.update("foo", { bar: "baz" })).toThrow(Error)
+        })
+
+        it("should update a record if the key does exist", () => {
+            // Arrange
+            const json = {
+                "/file.db": '{"foo": {"bar": "baz"}}',
+            }
+            const vol = Volume.fromJSON(json)
+            const fileDB = fileDatabaseFactory("/file.db", vol)
+
+            // Act
+            fileDB.update("foo", { bar2: "baz2" })
+
+            // Assert
+            expect(fileDB.get("foo")).resolves.toEqual({ bar2: "baz2" })
+        })
+    })
+
+    describe("delete", () => {
+        it("should do nothing if the key does not exist", () => {
+            // Arrange
+            const vol = Volume.fromJSON({})
+            const fileDB = fileDatabaseFactory("/file.db", vol)
+
+            // Act
+            fileDB.delete("foo")
+
+            // Assert
+            expect(fileDB.get("foo")).resolves.toEqual(null)
+        })
+
+        it("should delete a record if the key does exist", () => {
+            // Arrange
+            const json = {
+                "/file.db": '{"foo": {"bar": "baz"}}',
+            }
+            const vol = Volume.fromJSON(json)
+            const fileDB = fileDatabaseFactory("/file.db", vol)
+
+            // Act
+            fileDB.delete("foo")
+
+            // Assert
+            expect(fileDB.get("foo")).resolves.toEqual(null)
+        })
     })
 })

@@ -1,88 +1,97 @@
-import { randomUUID } from "crypto"
+import { TabDTO } from "../../../../src/apps/tabs/repository/dto"
+import { TabServiceError } from "../../../../src/apps/tabs/service/errors"
 import {
     TabRepository,
     TabService,
 } from "../../../../src/apps/tabs/service/service"
-import { TabServiceError } from "../../../../src/apps/tabs/service/errors"
-import { TabDTO } from "../../../../src/apps/tabs/repository/dto"
 
-class MockTabRepository implements TabRepository {
-    public tabs = new Map<string, TabDTO>()
+describe("TabService", () => {
+    let mockTabRepository: jest.Mocked<TabRepository>
 
-    newTab(dto: TabDTO): string {
-        const id = randomUUID()
-        this.tabs.set(id, dto)
-        return id
-    }
-
-    getTab(id: string): TabDTO | undefined {
-        return this.tabs.get(id)
-    }
-
-    deleteTab(id: string): void {
-        this.tabs.delete(id)
-    }
-
-    updateTab(id: string, dto: TabDTO): void {
-        this.tabs.set(id, dto)
-    }
-}
-
-describe("TabService.newTab", () => {
-    it("should create a new tab with the given name and balances set to zero", () => {
-        const mock = new MockTabRepository()
-        const service = new TabService(mock)
-
-        const id = service.newTab("new_tab", ["user1", "user2", "user3"])
-
-        expect(mock.getTab(id)).toStrictEqual(
-            new TabDTO("new_tab", {
-                user1: 0,
-                user2: 0,
-                user3: 0,
-            }),
-        )
-    })
-})
-
-describe("TabService.getTab", () => {
-    it("should return the tab as an object if it exists", () => {
-        const mock = new MockTabRepository()
-        const id = mock.newTab(new TabDTO("new_tab", { user1: 0, user2: 0 }))
-        const service = new TabService(mock)
-
-        expect(service.getTab(id)).toStrictEqual(
-            new TabDTO("new_tab", {
-                user1: 0,
-                user2: 0,
-            }),
-        )
+    beforeEach(() => {
+        mockTabRepository = {
+            newTab: jest.fn(),
+            getTab: jest.fn(),
+            deleteTab: jest.fn(),
+            updateTab: jest.fn(),
+        } as jest.Mocked<TabRepository>
     })
 
-    it("should throw a TabServiceError if the tab does not exist in the repository", () => {
-        const mock = new MockTabRepository()
-        const service = new TabService(mock)
+    describe("newTab", () => {
+        it("should create a new tab with the given name and balances set to zero", () => {
+            // Arrange
+            const service = new TabService(mockTabRepository)
 
-        expect(() => service.getTab("id")).toThrow(TabServiceError)
+            const expectedID = "uuid"
+            mockTabRepository.newTab.mockResolvedValue(expectedID)
+
+            // Act
+            const id = service.newTab("new-tab", ["user1", "user2", "user3"])
+
+            // Assert
+            expect(mockTabRepository.newTab).toHaveBeenCalledWith(
+                new TabDTO("new-tab", {
+                    user1: 0,
+                    user2: 0,
+                    user3: 0,
+                }),
+            )
+
+            expect(id).resolves.toBe(expectedID)
+        })
     })
-})
 
-describe("TabService.DeleteTab", () => {
-    it("should delete the tab if it exists", () => {
-        const mock = new MockTabRepository()
-        const id = mock.newTab(new TabDTO("new_tab", { user1: 0, user2: 0 }))
-        const service = new TabService(mock)
+    describe("getTab", () => {
+        it("should return the tab as an object if repository returns it", () => {
+            // Arrange
+            const service = new TabService(mockTabRepository)
 
-        service.deleteTab(id)
+            const existingTabDTO = new TabDTO("new-tab", { user1: 0, user2: 0 })
+            mockTabRepository.getTab.mockResolvedValue(existingTabDTO)
 
-        expect(mock.getTab(id)).toStrictEqual(undefined)
+            // Act
+            const returnedTabDTO = service.getTab("id")
+
+            // Assert
+            expect(mockTabRepository.getTab).toHaveBeenCalledWith("id")
+            expect(returnedTabDTO).resolves.toBe(existingTabDTO)
+        })
+
+        it("should throw a TabServiceError if the tab does not exist in the repository", () => {
+            // Arrange
+            const service = new TabService(mockTabRepository)
+
+            mockTabRepository.getTab.mockResolvedValue(null)
+
+            // Act & Assert
+            expect(() => service.getTab("id")).rejects.toThrow(TabServiceError)
+        })
     })
 
-    it("should throw a TabServiceError if the tab does not exist in the repository", () => {
-        const mock = new MockTabRepository()
-        const service = new TabService(mock)
+    describe("deleteTab", () => {
+        it("should delete the tab if it exists", () => {
+            // Arrange
+            const service = new TabService(mockTabRepository)
 
-        expect(() => service.deleteTab("id")).toThrow(TabServiceError)
+            mockTabRepository.getTab.mockResolvedValue(new TabDTO("name", {}))
+
+            // Act
+            service.deleteTab("id").then(() => {
+                // Assert
+                expect(mockTabRepository.getTab).toHaveBeenCalledWith("id")
+                expect(mockTabRepository.deleteTab).toHaveBeenCalledWith("id")
+            })
+        })
+
+        it("should throw a TabServiceError if the tab does not exist in the repository", () => {
+            // Arrange
+            const service = new TabService(mockTabRepository)
+
+            mockTabRepository.getTab.mockResolvedValue(null)
+
+            // Act & Assert
+            expect(() => service.deleteTab("id")).rejects.toThrow(TabServiceError)
+        })
     })
 })
 
