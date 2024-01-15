@@ -8,10 +8,14 @@ import { TabService } from "./service/service"
 
 export const tabs = express()
 
-// const databaseService = fileDatabaseFactory<TabData>(__dirname + "/.db/db") 
+const dbConnectionString = process.env.MONGODB_CONNECTION_STRING
+if (dbConnectionString === undefined) {
+    console.log("No database connection string defined")
+    process.exit(1)
+}
 
 const databaseService = new MongoDatabaseService<TabData>(
-    "mongodb://127.0.0.1:27017",
+    dbConnectionString,
     "tabs",
     "tabData",
 )
