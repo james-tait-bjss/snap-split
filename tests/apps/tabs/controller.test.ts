@@ -1,9 +1,17 @@
 import { Request, Response } from "express"
-import { TabController, TabService } from "../../../src/apps/tabs/controllers"
+import { TabController } from "../../../src/apps/tabs/controllers"
 import { tabNotExistError } from "../../../src/apps/tabs/service/errors"
+import { Transaction } from "../../../src/apps/tabs/service/transaction"
+
+interface MockTabService {
+    newTab(name: string, users: string[]): Promise<string>
+    getTab(id: string): Promise<object>
+    deleteTab(id: string): void
+    addTransaction(id: string, transaction: Transaction): void
+}
 
 describe("TabController", () => {
-    let mockTabService: jest.Mocked<TabService>
+    let mockTabService: jest.Mocked<MockTabService>
     let mockResponse: jest.Mocked<Response>
 
     beforeEach(() => {
@@ -12,7 +20,7 @@ describe("TabController", () => {
             getTab: jest.fn(),
             deleteTab: jest.fn(),
             addTransaction: jest.fn(),
-        } as jest.Mocked<TabService>
+        } as jest.Mocked<MockTabService>
 
         mockResponse = {
             send: jest.fn(),

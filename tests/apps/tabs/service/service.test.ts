@@ -3,13 +3,17 @@ import {
     TransactionDTO,
 } from "../../../../src/apps/tabs/repository/dto"
 import { TabServiceError } from "../../../../src/apps/tabs/service/errors"
-import {
-    TabRepository,
-    TabService,
-} from "../../../../src/apps/tabs/service/service"
+import { TabService } from "../../../../src/apps/tabs/service/service"
+
+interface MockTabRepository {
+    newTab(dto: TabDTO): Promise<string>
+    getTab(id: string): Promise<TabDTO | null>
+    deleteTab(id: string): void
+    updateTab(id: string, dto: TabDTO): void
+}
 
 describe("TabService", () => {
-    let mockTabRepository: jest.Mocked<TabRepository>
+    let mockTabRepository: jest.Mocked<MockTabRepository>
 
     beforeEach(() => {
         mockTabRepository = {
@@ -17,7 +21,7 @@ describe("TabService", () => {
             getTab: jest.fn(),
             deleteTab: jest.fn(),
             updateTab: jest.fn(),
-        } as jest.Mocked<TabRepository>
+        } as jest.Mocked<MockTabRepository>
     })
 
     describe("newTab", () => {
@@ -69,7 +73,7 @@ describe("TabService", () => {
                     user2: {
                         balance: -10,
                         owedBy: {
-                            user1: -10
+                            user1: -10,
                         },
                     },
                 },
@@ -116,4 +120,53 @@ describe("TabService", () => {
             )
         })
     })
+
+    describe("addTransaction", () => {
+        it("should throw a TabServiceError if the tab does not exist in the repository", () => {
+            // Arrange
+            const service = new TabService(mockTabRepository)
+
+            mockTabRepository.getTab.mockResolvedValue(null)
+
+            const transaction = {
+                paidBy: "",
+                amount: 0,
+                owedBy: { "": 0 },
+            }
+
+            // Act & Assert
+            expect(() =>
+                service.addTransaction("id", transaction),
+            ).rejects.toThrow(TabServiceError)
+        })
+
+        it("should update the tab with the transaction if it does exist", () => {
+            // Arrange
+            const service = new TabService(mockTabRepository)
+
+            mockTabRepository.getTab.mockResolvedValue(
+                new TabDTO("existing-tab", ["user1", "user2", "user3"], []),
+            )
+
+            // Act
+            const result = service.addTransaction("id", {
+                paidBy: "user1",
+                amount: 10,
+                owedBy: { user2: 10 },
+            })
+
+            // Assert
+            result.then(() => {
+                expect(mockTabRepository.updateTab).toHaveBeenCalledWith(
+                    "id",
+                    new TabDTO(
+                        "existing-tab",
+                        ["user1", "user2", "user3"],
+                        [new TransactionDTO("user1", 10, { user2: 10 })],
+                    ),
+                )
+            })
+        })
+    })
 })
+

@@ -2,7 +2,7 @@ import { Request, Response } from "express"
 import { TabServiceError } from "./service/errors"
 import { Transaction } from "./service/transaction"
 
-export interface TabService {
+interface TabService {
     newTab(name: string, users: string[]): Promise<string>
     getTab(id: string): Promise<object>
     deleteTab(id: string): void

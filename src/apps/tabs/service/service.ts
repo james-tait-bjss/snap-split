@@ -4,11 +4,17 @@ import { tabNotExistError } from "./errors"
 import { Transaction } from "./transaction"
 import { User } from "./user"
 
-export interface TabRepository {
+interface TabRepository {
     newTab(dto: TabDTO): Promise<string>
     getTab(id: string): Promise<TabDTO | null>
     deleteTab(id: string): void
     updateTab(id: string, dto: TabDTO): void
+}
+
+type AddTransactionArgs = {
+    paidBy: string
+    amount: number
+    owedBy: { [userID: string]: number }
 }
 
 export class TabService {
@@ -59,7 +65,7 @@ export class TabService {
         this.tabRepository.deleteTab(id)
     }
 
-    async addTransaction(id: string, transaction: Transaction) {
+    async addTransaction(id: string, transaction: AddTransactionArgs) {
         const tabDTO = await this.tabRepository.getTab(id)
 
         if (tabDTO === null) {
@@ -68,9 +74,11 @@ export class TabService {
 
         const tab = TabConverter.fromDTO(tabDTO)
 
-        transaction.owedBy = new Map(Object.entries(transaction.owedBy))
-
-        tab.addTransaction(transaction)
+        tab.addTransaction({
+            paidBy: transaction.paidBy,
+            amount: transaction.amount,
+            owedBy: new Map(Object.entries(transaction.owedBy)),
+        })
         this.tabRepository.updateTab(id, TabConverter.toDTO(tab))
     }
 }
