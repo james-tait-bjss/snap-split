@@ -1,5 +1,5 @@
 import { TabDTO, TransactionDTO } from "../repository/dto"
-import { Tab } from "./service"
+import { Tab } from "./tab"
 
 export class TabConverter {
     static fromDTO(tabDTO: TabDTO): Tab {

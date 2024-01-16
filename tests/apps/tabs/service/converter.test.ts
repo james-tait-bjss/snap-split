@@ -3,7 +3,7 @@ import {
     TransactionDTO,
 } from "../../../../src/apps/tabs/repository/dto"
 import { TabConverter } from "../../../../src/apps/tabs/service/converter"
-import { Tab } from "../../../../src/apps/tabs/service/service"
+import { Tab } from "../../../../src/apps/tabs/service/tab"
 
 describe("TabConverter", () => {
     describe("fromDTO", () => {
