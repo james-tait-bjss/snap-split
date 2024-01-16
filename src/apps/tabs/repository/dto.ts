@@ -10,6 +10,6 @@ export class TransactionDTO {
     constructor(
         public readonly paidBy: string,
         public readonly amount: number,
-        public readonly owedBy: object,
+        public readonly owedBy: { [userID: string]: number },
     ) {}
 }

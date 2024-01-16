@@ -21,13 +21,32 @@ export class TabService {
     }
 
     async getTab(id: string): Promise<object> {
-        const tab = await this.tabRepository.getTab(id)
+        const tabDTO = await this.tabRepository.getTab(id)
 
-        if (tab === null) {
+        if (tabDTO === null) {
             throw tabNotExistError(id)
         }
 
-        return tab
+        const tab = TabConverter.fromDTO(tabDTO)
+
+        const usersObject: {
+            [userID: string]: {
+                balance: number
+                owedBy: { [userID: string]: number }
+            }
+        } = {}
+
+        for (const [userID, user] of tab.getUsers().entries()) {
+            usersObject[userID] = {
+                balance: user.calculateBalance(),
+                owedBy: Object.fromEntries(user.getOwedBy()),
+            }
+        }
+
+        return {
+            name: tab.name,
+            users: usersObject,
+        }
     }
 
     async deleteTab(id: string) {
@@ -83,6 +102,10 @@ export class Tab {
         }
 
         return balances
+    }
+
+    public getUsers(): Map<string, User> {
+        return this.users
     }
 
     public getUserIDs(): string[] {

@@ -29,4 +29,6 @@ export class TabConverter {
 
         return new TabDTO(tab.name, tab.getUserIDs(), transactionDTOs)
     }
+
+    // TODO: TO / FROM Controller DTO
 }

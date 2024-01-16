@@ -57,7 +57,23 @@ describe("TabService", () => {
 
             // Assert
             expect(mockTabRepository.getTab).toHaveBeenCalledWith("id")
-            expect(returnedTabDTO).resolves.toBe(existingTabDTO)
+            expect(returnedTabDTO).resolves.toStrictEqual({
+                name: "new-tab",
+                users: {
+                    user1: {
+                        balance: 10,
+                        owedBy: {
+                            user2: 10,
+                        },
+                    },
+                    user2: {
+                        balance: -10,
+                        owedBy: {
+                            user1: -10
+                        },
+                    },
+                },
+            })
         })
 
         it("should throw a TabServiceError if the tab does not exist in the repository", () => {
@@ -76,7 +92,9 @@ describe("TabService", () => {
             // Arrange
             const service = new TabService(mockTabRepository)
 
-            mockTabRepository.getTab.mockResolvedValue(new TabDTO("name",[], []))
+            mockTabRepository.getTab.mockResolvedValue(
+                new TabDTO("name", [], []),
+            )
 
             // Act
             service.deleteTab("id").then(() => {

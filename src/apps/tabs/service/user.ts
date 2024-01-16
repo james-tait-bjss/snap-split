@@ -5,6 +5,10 @@ export class User {
         this.owedBy = new Map<string, number>()
     }
 
+    public getOwedBy(): Map<string, number> {
+        return this.owedBy
+    }
+
     public shouldPay(user: string, amount: number) {
         const currAmount = this.owedBy.get(user) ?? 0
         this.owedBy.set(user, currAmount - amount)

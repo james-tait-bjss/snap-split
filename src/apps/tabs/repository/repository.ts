@@ -10,7 +10,7 @@ export interface TabData {
 export interface TransactionData {
     paidBy: string
     amount: number
-    owedBy: object
+    owedBy: { [userID: string]: number }
 }
 
 export class TabRepository {
