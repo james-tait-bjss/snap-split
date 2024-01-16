@@ -38,7 +38,14 @@ describe("TabRepository", () => {
 
             const recordInDB = {
                 name: "new_tab",
-                balances: { user1: 20, user2: 40 },
+                users: ["user1", "user2", "user3"],
+                transactions: [
+                    {
+                        paidBy: "user1",
+                        amount: 20,
+                        owedBy: { user2: 10, user3: 10 },
+                    },
+                ],
             }
             mockDatabaseService.get.mockResolvedValue(recordInDB)
 
@@ -61,14 +68,31 @@ describe("TabRepository", () => {
 
             // Act
             const result = repo.newTab(
-                new TabDTO("new-tab", { user1: 20, user2: 40 }),
+                new TabDTO(
+                    "new-tab",
+                    ["user1", "user2", "user3"],
+                    [
+                        {
+                            paidBy: "user1",
+                            amount: 20,
+                            owedBy: { user2: 10, user3: 10 },
+                        },
+                    ],
+                ),
             )
 
             // Assert
             expect(result).resolves.toBe(createdID)
             expect(mockDatabaseService.create).toHaveBeenCalledWith({
                 name: "new-tab",
-                balances: { user1: 20, user2: 40 },
+                users: ["user1", "user2", "user3"],
+                transactions: [
+                    {
+                        paidBy: "user1",
+                        amount: 20,
+                        owedBy: { user2: 10, user3: 10 },
+                    },
+                ],
             })
         })
     })

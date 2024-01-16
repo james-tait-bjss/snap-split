@@ -1,20 +1,32 @@
-import { TabDTO } from "../repository/dto"
+import { TabDTO, TransactionDTO } from "../repository/dto"
 import { Tab } from "./service"
 
 export class TabConverter {
     static fromDTO(tabDTO: TabDTO): Tab {
-        const balances = new Map<string, number>(
-            Object.entries(tabDTO.balances),
-        )
-        const tab = Tab.fromBalances(tabDTO.name, balances)
+        const tab = new Tab(tabDTO.name, tabDTO.users)
+
+        for (const transactionDTO of tabDTO.transactions) {
+            tab.addTransaction({
+                paidBy: transactionDTO.paidBy,
+                amount: transactionDTO.amount,
+                owedBy: new Map<string, number>(
+                    Object.entries(transactionDTO.owedBy),
+                ),
+            })
+        }
 
         return tab
     }
 
     static toDTO(tab: Tab): TabDTO {
-        return new TabDTO(
-            tab.name,
-            Object.fromEntries(tab.getBalances().entries()),
-        )
+        const transactionDTOs = tab.getTransactions().map((transaction) => {
+            return new TransactionDTO(
+                transaction.paidBy,
+                transaction.amount,
+                Object.fromEntries(transaction.owedBy),
+            )
+        })
+
+        return new TabDTO(tab.name, tab.getUserIDs(), transactionDTOs)
     }
 }

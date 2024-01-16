@@ -135,8 +135,12 @@ describe("TabController", () => {
             const controller = new TabController(mockTabService)
             const req: Partial<Request> = {
                 body: {
+                    paidBy: "user1",
                     amount: 20,
-                    users: ["user1", "user2", "user3"],
+                    owedBy: {
+                        user2: 10,
+                        user3: 10,
+                    },
                 },
                 params: {
                     id: "uuid",
@@ -147,11 +151,14 @@ describe("TabController", () => {
             controller.postTransaction(req as Request, mockResponse)
 
             // Assert
-            expect(mockTabService.addTransaction).toHaveBeenCalledWith(
-                "uuid",
-                20,
-                ["user1", "user2", "user3"],
-            )
+            expect(mockTabService.addTransaction).toHaveBeenCalledWith("uuid", {
+                paidBy: "user1",
+                amount: 20,
+                owedBy: {
+                    user2: 10,
+                    user3: 10,
+                },
+            })
             expect(mockResponse.sendStatus).toHaveBeenCalledWith(200)
         })
 
@@ -160,8 +167,12 @@ describe("TabController", () => {
             const controller = new TabController(mockTabService)
             const req: Partial<Request> = {
                 body: {
+                    paidBy: "user1",
                     amount: 20,
-                    users: ["user1", "user2", "user3"],
+                    owedBy: {
+                        user2: 10,
+                        user3: 10,
+                    },
                 },
                 params: {
                     id: "uuid",
@@ -176,11 +187,14 @@ describe("TabController", () => {
             controller.postTransaction(req as Request, mockResponse)
 
             // Assert
-            expect(mockTabService.addTransaction).toHaveBeenCalledWith(
-                "uuid",
-                20,
-                ["user1", "user2", "user3"],
-            )
+            expect(mockTabService.addTransaction).toHaveBeenCalledWith("uuid", {
+                paidBy: "user1",
+                amount: 20,
+                owedBy: {
+                    user2: 10,
+                    user3: 10,
+                },
+            })
             expect(mockResponse.sendStatus).toHaveBeenCalledWith(404)
         })
     })

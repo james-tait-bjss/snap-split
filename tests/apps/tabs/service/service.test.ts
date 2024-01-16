@@ -1,4 +1,7 @@
-import { TabDTO } from "../../../../src/apps/tabs/repository/dto"
+import {
+    TabDTO,
+    TransactionDTO,
+} from "../../../../src/apps/tabs/repository/dto"
 import { TabServiceError } from "../../../../src/apps/tabs/service/errors"
 import {
     TabRepository,
@@ -30,11 +33,7 @@ describe("TabService", () => {
 
             // Assert
             expect(mockTabRepository.newTab).toHaveBeenCalledWith(
-                new TabDTO("new-tab", {
-                    user1: 0,
-                    user2: 0,
-                    user3: 0,
-                }),
+                new TabDTO("new-tab", ["user1", "user2", "user3"], []),
             )
 
             expect(id).resolves.toBe(expectedID)
@@ -46,7 +45,11 @@ describe("TabService", () => {
             // Arrange
             const service = new TabService(mockTabRepository)
 
-            const existingTabDTO = new TabDTO("new-tab", { user1: 0, user2: 0 })
+            const existingTabDTO = new TabDTO(
+                "new-tab",
+                ["user1", "user2"],
+                [new TransactionDTO("user1", 10, { user2: 10 })],
+            )
             mockTabRepository.getTab.mockResolvedValue(existingTabDTO)
 
             // Act
@@ -73,7 +76,7 @@ describe("TabService", () => {
             // Arrange
             const service = new TabService(mockTabRepository)
 
-            mockTabRepository.getTab.mockResolvedValue(new TabDTO("name", {}))
+            mockTabRepository.getTab.mockResolvedValue(new TabDTO("name",[], []))
 
             // Act
             service.deleteTab("id").then(() => {
@@ -90,64 +93,9 @@ describe("TabService", () => {
             mockTabRepository.getTab.mockResolvedValue(null)
 
             // Act & Assert
-            expect(() => service.deleteTab("id")).rejects.toThrow(TabServiceError)
+            expect(() => service.deleteTab("id")).rejects.toThrow(
+                TabServiceError,
+            )
         })
     })
 })
-
-// describe("addTransactionWithEqualSplit", () => {
-//     it("should reject an invalid transaction amount", () => {
-//         const invalidTransactionAmountString = "Transaction amount should be a valid number greater than zero"
-//         const tab = new Tab("foobar", users)
-
-//         expect(() => tab.addTransactionWithEqualSplit(0,  Array.from(tab.getBalances().keys())))
-//         .toThrow(invalidTransactionAmountString)
-
-//         expect(() => tab.addTransactionWithEqualSplit(-1,  Array.from(tab.getBalances().keys())))
-//         .toThrow(invalidTransactionAmountString)
-
-//         expect(() => tab.addTransactionWithEqualSplit(NaN,  Array.from(tab.getBalances().keys())))
-//         .toThrow(invalidTransactionAmountString)
-//     })
-
-//     it("should reject an invalid users array", () => {
-//         const tab = new Tab("foobar", users)
-
-//         expect(() => tab.addTransactionWithEqualSplit(1, []))
-//         .toThrow("Must have at least one involved user")
-
-//         expect(() => tab.addTransactionWithEqualSplit(1,  ["fake-user"]))
-//         .toThrow("User not found in tab")
-//     })
-
-//     it("should evenly distribute the transaction when it divides the number of users", () => {
-//         const tab = new Tab("foobar", users)
-
-//         tab.addTransactionWithEqualSplit(6, Array.from(tab.getBalances().keys()))
-
-//         expect(tab.getBalances().get(user1)).toBe(2)
-//         expect(tab.getBalances().get(user2)).toBe(2)
-//         expect(tab.getBalances().get(user3)).toBe(2)
-//     })
-
-//     it("should add the remainder to the correct users when the transaction doesn't divide the number of users",
-//       () => {
-//         const tab = new Tab("foobar", users)
-
-//         tab.addTransactionWithEqualSplit(8, Array.from(tab.getBalances().keys()))
-
-//         expect(tab.getBalances().get(user1)).toBe(3)
-//         expect(tab.getBalances().get(user2)).toBe(3)
-//         expect(tab.getBalances().get(user3)).toBe(2)
-//     })
-
-//     it("should only increase balance for included users", () => {
-//         const tab = new Tab("foobar", users)
-
-//         tab.addTransactionWithEqualSplit(4, [user1, user2])
-
-//         expect(tab.getBalances().get(user1)).toBe(2)
-//         expect(tab.getBalances().get(user2)).toBe(2)
-//         expect(tab.getBalances().get(user3)).toBe(0)
-//     })
-// })

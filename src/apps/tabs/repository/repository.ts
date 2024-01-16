@@ -1,9 +1,16 @@
 import { DatabaseService } from "../../db"
-import { TabDTO } from "./dto"
+import { TabDTO, TransactionDTO } from "./dto"
 
 export interface TabData {
     name: string
-    balances: object
+    users: string[]
+    transactions: TransactionData[]
+}
+
+export interface TransactionData {
+    paidBy: string
+    amount: number
+    owedBy: object
 }
 
 export class TabRepository {
@@ -16,13 +23,22 @@ export class TabRepository {
             return null
         }
 
-        return new TabDTO(tab.name, tab.balances)
+        const transactionDTOs = tab.transactions.map((transactionData) => {
+            return new TransactionDTO(
+                transactionData.paidBy,
+                transactionData.amount,
+                transactionData.owedBy,
+            )
+        })
+
+        return new TabDTO(tab.name, tab.users, transactionDTOs)
     }
 
     async newTab(dto: TabDTO): Promise<string> {
         const id = await this.db.create({
             name: dto.name,
-            balances: dto.balances,
+            users: dto.users,
+            transactions: dto.transactions,
         })
 
         return id
@@ -35,7 +51,8 @@ export class TabRepository {
     async updateTab(id: string, dto: TabDTO) {
         this.db.update(id, {
             name: dto.name,
-            balances: dto.balances,
+            users: dto.users,
+            transactions: dto.transactions,
         })
     }
 }
