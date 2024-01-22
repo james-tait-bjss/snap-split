@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: snap-split-server
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: snap-split-server
+    template:
+        metadata:
+            labels:
+                app: snap-split-server
+        spec:
+            containers:
+                - name: snap-split-server
+                  image: snap-split-server
+                  ports:
+                      - containerPort: 3000
+                  imagePullPolicy: Never
+                  env:
+                      - name: MONGODB_CONNECTION_STRING
+                        valueFrom:
+                            configMapKeyRef:
+                                name: snap-split-config
+                                key: db-connection-string
