@@ -3,7 +3,7 @@ import {
     TransactionDTO,
 } from "../../../../src/apps/tabs/repository/dto"
 import { TabConverter } from "../../../../src/apps/tabs/service/converter"
-import { Tab } from "../../../../src/apps/tabs/service/tab"
+import { Tab, TabFactory } from "../../../../src/apps/tabs/service/tab"
 import { UserFactory } from "../../../../src/apps/tabs/service/user"
 
 describe("TabConverter", () => {
@@ -19,9 +19,10 @@ describe("TabConverter", () => {
                 ["user1", "user2", "user3"],
                 transactions,
             )
+            const tabFactory = new TabFactory(new UserFactory())
 
             // Act
-            const result = TabConverter.fromDTO(tabDTO, new UserFactory())
+            const result = TabConverter.fromDTO(tabDTO, tabFactory)
 
             // Assert
             expect(result.name).toBe("new-tab")

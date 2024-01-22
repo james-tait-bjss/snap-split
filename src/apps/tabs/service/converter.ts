@@ -1,14 +1,9 @@
 import { TabDTO, TransactionDTO } from "../repository/dto"
-import { Tab } from "./tab"
-import { User } from "./user"
-
-interface UserFactory {
-    createUser(id: string): User
-}
+import { Tab, TabFactory } from "./tab"
 
 export class TabConverter {
-    static fromDTO(tabDTO: TabDTO, userFactory :  UserFactory): Tab {
-        const tab = new Tab(tabDTO.name, tabDTO.users, userFactory)
+    static fromDTO(tabDTO: TabDTO, tabFactory: TabFactory): Tab {
+        const tab = tabFactory.createTab(tabDTO.name, tabDTO.users)
 
         for (const transactionDTO of tabDTO.transactions) {
             tab.addTransaction({
