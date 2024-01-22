@@ -1,4 +1,21 @@
-import { User } from "../../../../src/apps/tabs/service/user"
+import { User, UserFactory } from "../../../../src/apps/tabs/service/user"
+
+describe("UserFactory", () => {
+    describe("createUser", () => {
+        it("should create a user with the provided id", () => {
+            // Arrange
+            const factory = new UserFactory()
+            
+            const id = "id"
+
+            // Act
+            const user = factory.createUser(id)
+
+            // Assert
+            expect(user.id).toBe(id)
+        })
+    })
+})
 
 describe("User", () => {
     describe("shouldPay", () => {

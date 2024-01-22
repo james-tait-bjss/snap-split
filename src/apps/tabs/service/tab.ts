@@ -1,5 +1,5 @@
 import { Transaction } from "./transaction"
-import { User } from "./user"
+import { User, UserFactory } from "./user"
 
 export class Tab {
     private users: Map<string, User>
@@ -8,6 +8,7 @@ export class Tab {
     constructor(
         public name: string,
         users: string[],
+        private readonly userFactory: UserFactory,
     ) {
         this.transactions = []
         this.users = new Map<string, User>()
@@ -43,7 +44,7 @@ export class Tab {
             throw new Error("user already exists")
         }
 
-        const newUser = new User(id)
+        const newUser = this.userFactory.createUser(id)
         this.users.set(newUser.id, newUser)
     }
 

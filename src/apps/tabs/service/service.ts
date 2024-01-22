@@ -2,6 +2,7 @@ import { TabDTO } from "../repository/dto"
 import { TabConverter } from "./converter"
 import { tabNotExistError } from "./errors"
 import { Tab } from "./tab"
+import { UserFactory } from "./user"
 
 interface TabRepository {
     newTab(dto: TabDTO): Promise<string>
@@ -17,10 +18,14 @@ export type AddTransactionArgs = {
 }
 
 export class TabService {
-    constructor(private readonly tabRepository: TabRepository) {}
+    private readonly userFactory: UserFactory
+
+    constructor(private readonly tabRepository: TabRepository) {
+        this.userFactory = new UserFactory()
+    }
 
     async newTab(name: string, users: string[]): Promise<string> {
-        const tab = new Tab(name, users)
+        const tab = new Tab(name, users, this.userFactory)
 
         return await this.tabRepository.newTab(TabConverter.toDTO(tab))
     }
@@ -32,7 +37,7 @@ export class TabService {
             throw tabNotExistError(id)
         }
 
-        const tab = TabConverter.fromDTO(tabDTO)
+        const tab = TabConverter.fromDTO(tabDTO, this.userFactory)
 
         const usersObject: {
             [userID: string]: {
@@ -71,7 +76,7 @@ export class TabService {
             throw tabNotExistError(id)
         }
 
-        const tab = TabConverter.fromDTO(tabDTO)
+        const tab = TabConverter.fromDTO(tabDTO, this.userFactory)
 
         tab.addTransaction({
             paidBy: transaction.paidBy,
@@ -81,4 +86,3 @@ export class TabService {
         this.tabRepository.updateTab(id, TabConverter.toDTO(tab))
     }
 }
-

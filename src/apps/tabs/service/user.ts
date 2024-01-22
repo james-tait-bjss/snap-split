@@ -1,3 +1,9 @@
+export class UserFactory {
+    createUser(id: string): User {
+        return new User(id)
+    }
+}
+
 export class User {
     private owedBy: Map<string, number>
 
