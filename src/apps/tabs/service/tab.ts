@@ -1,8 +1,16 @@
 import { Transaction } from "./transaction"
 import { User } from "./user"
 
-interface UserFactory {
+export interface UserFactory {
     createUser(id: string): User
+}
+
+export class TabFactory {
+    constructor(private readonly userFactory: UserFactory) {}
+
+    createTab(name: string, users: string[]): Tab {
+        return new Tab(name, users, this.userFactory)
+    }
 }
 
 export class Tab {
