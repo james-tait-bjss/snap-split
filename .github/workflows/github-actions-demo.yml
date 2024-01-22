@@ -14,5 +14,5 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Run Unit tests
-        run: npm run test
+        run: npm run test:coverage
       - run: echo "🍏 This job's status is ${{ job.status }}."
