@@ -131,3 +131,6 @@ dist
 
 # Custom file database
 src/apps/tabs/.db/
+
+# IDE
+.vscode
