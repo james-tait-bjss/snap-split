@@ -8,7 +8,7 @@
   },
   "scripts": {
     "init": "cp -r hooks/* .git/hooks && chmod ug+x .git/hooks/*",
-    "build": "docker build -t snap-split-server -f Dockerfile.server",
+    "build": "docker build -t snap-split-server",
     "build:minikube": "eval $(minikube docker-env) && kubectl apply --recursive -f k8s && docker build -t snap-split-server -f Dockerfile.server .",
     "restart:minikube": "npm run build:minikube && kubectl rollout restart deployment/snap-split-server",
     "start": "ts-node src/server.ts",
