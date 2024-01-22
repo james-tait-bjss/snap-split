@@ -1,14 +1,21 @@
 import { TabDTO } from "../repository/dto"
-import { TabConverter } from "./converter"
 import { tabNotExistError } from "./errors"
-import { TabFactory } from "./tab"
-import { UserFactory } from "./user"
+import { Tab } from "./tab"
 
-interface TabRepository {
+export interface TabRepository {
     newTab(dto: TabDTO): Promise<string>
     getTab(id: string): Promise<TabDTO | null>
     deleteTab(id: string): void
     updateTab(id: string, dto: TabDTO): void
+}
+
+export interface TabConverter {
+    fromDTO(tabDTO: TabDTO): Tab
+    toDTO(tab: Tab): TabDTO
+}
+
+export interface TabFactory {
+    createTab(name: string, users: string[]): Tab
 }
 
 export type AddTransactionArgs = {
@@ -18,16 +25,17 @@ export type AddTransactionArgs = {
 }
 
 export class TabService {
-    private readonly tabFactory: TabFactory
-
-    constructor(private readonly tabRepository: TabRepository) {
-        this.tabFactory = new TabFactory(new UserFactory())
-    }
+    constructor(
+        private readonly tabRepository: TabRepository,
+        private readonly tabFactory: TabFactory,
+        private readonly tabConverter: TabConverter,
+    ) {}
 
     async newTab(name: string, users: string[]): Promise<string> {
         const tab = this.tabFactory.createTab(name, users)
+        const tabDTO = this.tabConverter.toDTO(tab)
 
-        return await this.tabRepository.newTab(TabConverter.toDTO(tab))
+        return await this.tabRepository.newTab(tabDTO)
     }
 
     async getTab(id: string): Promise<object> {
@@ -37,8 +45,9 @@ export class TabService {
             throw tabNotExistError(id)
         }
 
-        const tab = TabConverter.fromDTO(tabDTO, this.tabFactory)
+        const tab = this.tabConverter.fromDTO(tabDTO)
 
+        // TODO: Extract this logic for unit testing
         const usersObject: {
             [userID: string]: {
                 balance: number
@@ -76,13 +85,16 @@ export class TabService {
             throw tabNotExistError(id)
         }
 
-        const tab = TabConverter.fromDTO(tabDTO, this.tabFactory)
+        const tab = this.tabConverter.fromDTO(tabDTO)
 
         tab.addTransaction({
             paidBy: transaction.paidBy,
             amount: transaction.amount,
             owedBy: new Map(Object.entries(transaction.owedBy)),
         })
-        this.tabRepository.updateTab(id, TabConverter.toDTO(tab))
+
+        const updatedTabDTO = this.tabConverter.toDTO(tab)
+        
+        this.tabRepository.updateTab(id, updatedTabDTO)
     }
 }

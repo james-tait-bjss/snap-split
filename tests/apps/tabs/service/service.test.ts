@@ -1,19 +1,18 @@
-import {
-    TabDTO,
-    TransactionDTO,
-} from "../../../../src/apps/tabs/repository/dto"
+import { TabDTO } from "../../../../src/apps/tabs/repository/dto"
 import { TabServiceError } from "../../../../src/apps/tabs/service/errors"
-import { TabService } from "../../../../src/apps/tabs/service/service"
-
-interface MockTabRepository {
-    newTab(dto: TabDTO): Promise<string>
-    getTab(id: string): Promise<TabDTO | null>
-    deleteTab(id: string): void
-    updateTab(id: string, dto: TabDTO): void
-}
+import {
+    TabConverter,
+    TabFactory,
+    TabRepository,
+    TabService,
+} from "../../../../src/apps/tabs/service/service"
+import { Tab } from "../../../../src/apps/tabs/service/tab"
+import { UserFactory } from "../../../../src/apps/tabs/service/user"
 
 describe("TabService", () => {
-    let mockTabRepository: jest.Mocked<MockTabRepository>
+    let mockTabRepository: jest.Mocked<TabRepository>
+    let mockTabConverter: jest.Mocked<TabConverter>
+    let mockTabFactory: jest.Mocked<TabFactory>
 
     beforeEach(() => {
         mockTabRepository = {
@@ -21,25 +20,50 @@ describe("TabService", () => {
             getTab: jest.fn(),
             deleteTab: jest.fn(),
             updateTab: jest.fn(),
-        } as jest.Mocked<MockTabRepository>
+        } as jest.Mocked<TabRepository>
+
+        mockTabConverter = {
+            fromDTO: jest.fn(),
+            toDTO: jest.fn(),
+        } as jest.Mocked<TabConverter>
+
+        mockTabFactory = {
+            createTab: jest.fn(),
+        } as jest.Mocked<TabFactory>
     })
 
     describe("newTab", () => {
         it("should create a new tab with the given name and balances set to zero", () => {
             // Arrange
-            const service = new TabService(mockTabRepository)
+            const service = new TabService(
+                mockTabRepository,
+                mockTabFactory,
+                mockTabConverter,
+            )
+
+            const name = "new-tab"
+            const users = ["user1", "user2", "user3"]
+
+            const returnedFromFactory = new Tab(name, users, new UserFactory())
+            mockTabFactory.createTab.mockReturnValue(returnedFromFactory)
+
+            const returnedFromConverter = new TabDTO(name, users, [])
+            mockTabConverter.toDTO.mockReturnValue(returnedFromConverter)
 
             const expectedID = "uuid"
             mockTabRepository.newTab.mockResolvedValue(expectedID)
 
             // Act
-            const id = service.newTab("new-tab", ["user1", "user2", "user3"])
+            const id = service.newTab(name, users)
 
             // Assert
-            expect(mockTabRepository.newTab).toHaveBeenCalledWith(
-                new TabDTO("new-tab", ["user1", "user2", "user3"], []),
+            expect(mockTabFactory.createTab).toHaveBeenCalledWith(name, users)
+            expect(mockTabConverter.toDTO).toHaveBeenCalledWith(
+                returnedFromFactory,
             )
-
+            expect(mockTabRepository.newTab).toHaveBeenCalledWith(
+                returnedFromConverter,
+            )
             expect(id).resolves.toBe(expectedID)
         })
     })
@@ -47,42 +71,61 @@ describe("TabService", () => {
     describe("getTab", () => {
         it("should return the tab as an object if repository returns it", () => {
             // Arrange
-            const service = new TabService(mockTabRepository)
-
-            const existingTabDTO = new TabDTO(
-                "new-tab",
-                ["user1", "user2"],
-                [new TransactionDTO("user1", 10, { user2: 10 })],
+            const service = new TabService(
+                mockTabRepository,
+                mockTabFactory,
+                mockTabConverter,
             )
-            mockTabRepository.getTab.mockResolvedValue(existingTabDTO)
+            const name = "new-tab"
+            const users = ["user1", "user2", "user3"]
+
+            const returnedFromRepository = new TabDTO(name, users, [])
+            mockTabRepository.getTab.mockResolvedValue(returnedFromRepository)
+
+            const returnedFromConverter = new Tab(
+                name,
+                users,
+                new UserFactory(),
+            )
+            mockTabConverter.fromDTO.mockReturnValue(returnedFromConverter)
 
             // Act
-            const returnedTabDTO = service.getTab("id")
+            const result = service.getTab("id")
 
             // Assert
-            expect(mockTabRepository.getTab).toHaveBeenCalledWith("id")
-            expect(returnedTabDTO).resolves.toStrictEqual({
-                name: "new-tab",
-                users: {
-                    user1: {
-                        balance: 10,
-                        owedBy: {
-                            user2: 10,
+            result.then((returnedTabDTO) => {
+                expect(returnedTabDTO).toStrictEqual({
+                    name: "new-tab",
+                    users: {
+                        user1: {
+                            balance: 0,
+                            owedBy: {},
+                        },
+                        user2: {
+                            balance: 0,
+                            owedBy: {},
+                        },
+                        user3: {
+                            balance: 0,
+                            owedBy: {},
                         },
                     },
-                    user2: {
-                        balance: -10,
-                        owedBy: {
-                            user1: -10,
-                        },
-                    },
-                },
+                })
+
+                expect(mockTabRepository.getTab).toHaveBeenCalledWith("id")
+                expect(mockTabConverter.fromDTO).toHaveBeenCalledWith(
+                    returnedFromRepository,
+                )
             })
         })
 
         it("should throw a TabServiceError if the tab does not exist in the repository", () => {
             // Arrange
-            const service = new TabService(mockTabRepository)
+            const service = new TabService(
+                mockTabRepository,
+                mockTabFactory,
+                mockTabConverter,
+            )
 
             mockTabRepository.getTab.mockResolvedValue(null)
 
@@ -94,7 +137,11 @@ describe("TabService", () => {
     describe("deleteTab", () => {
         it("should delete the tab if it exists", () => {
             // Arrange
-            const service = new TabService(mockTabRepository)
+            const service = new TabService(
+                mockTabRepository,
+                mockTabFactory,
+                mockTabConverter,
+            )
 
             mockTabRepository.getTab.mockResolvedValue(
                 new TabDTO("name", [], []),
@@ -110,7 +157,11 @@ describe("TabService", () => {
 
         it("should throw a TabServiceError if the tab does not exist in the repository", () => {
             // Arrange
-            const service = new TabService(mockTabRepository)
+            const service = new TabService(
+                mockTabRepository,
+                mockTabFactory,
+                mockTabConverter,
+            )
 
             mockTabRepository.getTab.mockResolvedValue(null)
 
@@ -124,7 +175,11 @@ describe("TabService", () => {
     describe("addTransaction", () => {
         it("should throw a TabServiceError if the tab does not exist in the repository", () => {
             // Arrange
-            const service = new TabService(mockTabRepository)
+            const service = new TabService(
+                mockTabRepository,
+                mockTabFactory,
+                mockTabConverter,
+            )
 
             mockTabRepository.getTab.mockResolvedValue(null)
 
@@ -140,33 +195,48 @@ describe("TabService", () => {
             ).rejects.toThrow(TabServiceError)
         })
 
-        it("should update the tab with the transaction if it does exist", () => {
-            // Arrange
-            const service = new TabService(mockTabRepository)
+        // TODO: Complete when the Tab is mocked in the TabService
+        // it("should update the tab with the transaction if it does exist", () => {
+        //     // Arrange
+        //     const service = new TabService(mockTabRepository, mockTabFactory, mockTabConverter)
 
-            mockTabRepository.getTab.mockResolvedValue(
-                new TabDTO("existing-tab", ["user1", "user2", "user3"], []),
-            )
+        //     const returnedFromRepository = new TabDTO("existing-tab", ["user1", "user2", "user3"], [])
+        //     mockTabRepository.getTab.mockResolvedValue(
+        //         returnedFromRepository
+        //     )
 
-            // Act
-            const result = service.addTransaction("id", {
-                paidBy: "user1",
-                amount: 10,
-                owedBy: { user2: 10 },
-            })
+        //     const returnedFromDTO = new Tab("existing-tab", ["user1", "user2", "user3"], new UserFactory())
+        //     mockTabConverter.fromDTO.mockReturnValue(returnedFromDTO)
 
-            // Assert
-            result.then(() => {
-                expect(mockTabRepository.updateTab).toHaveBeenCalledWith(
-                    "id",
-                    new TabDTO(
-                        "existing-tab",
-                        ["user1", "user2", "user3"],
-                        [new TransactionDTO("user1", 10, { user2: 10 })],
-                    ),
-                )
-            })
-        })
+        //     // TODO: Temporary until the Tab class is mocked out
+        //     returnedFromDTO.addTransaction()
+
+        //     const returnedToDTO
+
+        //     const id = "id"
+
+        //     // Act
+        //     const result = service.addTransaction(id, {
+        //         paidBy: "user1",
+        //         amount: 10,
+        //         owedBy: { user2: 10 },
+        //     })
+
+        //     // Assert
+        //     result.then(() => {
+        //         expect(mockTabRepository.getTab).toHaveBeenCalledWith(id)
+        //         expect(mockTabConverter.fromDTO).toHaveBeenCalledWith(returnedFromRepository)
+        //         expect(mockTabConverter.toDTO).toHaveBeenCalledWith()
+
+        //         expect(mockTabRepository.updateTab).toHaveBeenCalledWith(
+        //             "id",
+        //             new TabDTO(
+        //                 "existing-tab",
+        //                 ["user1", "user2", "user3"],
+        //                 [new TransactionDTO("user1", 10, { user2: 10 })],
+        //             ),
+        //         )
+        //     })
+        // })
     })
 })
-

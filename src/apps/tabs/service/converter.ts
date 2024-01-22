@@ -1,9 +1,11 @@
 import { TabDTO, TransactionDTO } from "../repository/dto"
-import { Tab, TabFactory } from "./tab"
+import { TabFactory } from "./service"
+import { Tab } from "./tab"
 
 export class TabConverter {
-    static fromDTO(tabDTO: TabDTO, tabFactory: TabFactory): Tab {
-        const tab = tabFactory.createTab(tabDTO.name, tabDTO.users)
+    constructor(private readonly tabFactory: TabFactory) {}
+    fromDTO(tabDTO: TabDTO): Tab {
+        const tab = this.tabFactory.createTab(tabDTO.name, tabDTO.users)
 
         for (const transactionDTO of tabDTO.transactions) {
             tab.addTransaction({
@@ -18,7 +20,7 @@ export class TabConverter {
         return tab
     }
 
-    static toDTO(tab: Tab): TabDTO {
+    toDTO(tab: Tab): TabDTO {
         const transactionDTOs = tab.getTransactions().map((transaction) => {
             return new TransactionDTO(
                 transaction.paidBy,
