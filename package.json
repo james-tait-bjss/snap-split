@@ -17,7 +17,7 @@
     "test": "jest",
     "test:serial": "jest --runInBand",
     "test:coverage": "jest --coverage",
-    "test:badges": "npm run test:coverage && make-coverage-badge"
+    "test:badges": "npm run test:coverage && make-coverage-badge && cp coverage/badge.svg badges/coverage.svg"
   },
   "keywords": [],
   "author": "",
