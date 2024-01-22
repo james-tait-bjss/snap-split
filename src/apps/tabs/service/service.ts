@@ -10,7 +10,7 @@ interface TabRepository {
     updateTab(id: string, dto: TabDTO): void
 }
 
-type AddTransactionArgs = {
+export type AddTransactionArgs = {
     paidBy: string
     amount: number
     owedBy: { [userID: string]: number }

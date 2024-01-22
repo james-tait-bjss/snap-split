@@ -1,13 +1,13 @@
 import { Request, Response } from "express"
-import { TabController } from "../../../src/apps/tabs/controllers"
+import { TabController } from "../../../src/apps/tabs/controller"
 import { tabNotExistError } from "../../../src/apps/tabs/service/errors"
-import { Transaction } from "../../../src/apps/tabs/service/transaction"
+import { AddTransactionArgs } from "../../../src/apps/tabs/service/service"
 
 interface MockTabService {
     newTab(name: string, users: string[]): Promise<string>
     getTab(id: string): Promise<object>
     deleteTab(id: string): void
-    addTransaction(id: string, transaction: Transaction): void
+    addTransaction(id: string, transaction: AddTransactionArgs): void
 }
 
 describe("TabController", () => {

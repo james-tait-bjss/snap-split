@@ -1,12 +1,10 @@
 import express from "express"
 import { MongoDatabaseService } from "../../libraries/db/mongo"
 import { RequestLogger } from "../../libraries/middleware/requestLogger"
-import { TabController } from "./controllers"
+import { TabController } from "./controller"
 import { TabData, TabRepository } from "./repository/repository"
 import { TabRouteHandler } from "./routes"
 import { TabService } from "./service/service"
-
-export const tabs = express()
 
 const dbConnectionString = process.env.MONGODB_CONNECTION_STRING
 if (dbConnectionString === undefined) {
@@ -21,11 +19,13 @@ const databaseService = new MongoDatabaseService<TabData>(
 )
 const tabRepository = new TabRepository(databaseService)
 const tabService = new TabService(tabRepository)
+const controller = new TabController(tabService)
 
 const routeHandler = new TabRouteHandler(
     express.Router(),
-    new TabController(tabService),
+    controller,
     new RequestLogger(),
 )
 
+export const tabs = express()
 tabs.use("/", routeHandler.router)

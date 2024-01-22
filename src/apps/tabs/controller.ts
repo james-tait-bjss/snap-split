@@ -1,12 +1,12 @@
 import { Request, Response } from "express"
 import { TabServiceError } from "./service/errors"
-import { Transaction } from "./service/transaction"
+import { AddTransactionArgs } from "./service/service"
 
 interface TabService {
     newTab(name: string, users: string[]): Promise<string>
     getTab(id: string): Promise<object>
     deleteTab(id: string): void
-    addTransaction(id: string, transaction: Transaction): void
+    addTransaction(id: string, transaction: AddTransactionArgs): void
 }
 
 export class TabController {
