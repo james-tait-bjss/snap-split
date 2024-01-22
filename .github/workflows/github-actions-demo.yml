@@ -2,7 +2,7 @@ name: Build
 run-name: ${{ github.actor }} building snap-split
 on: [push]
 jobs:
-  Unit test:
+  Unit:
     runs-on: ubuntu-latest
     steps:
       - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
