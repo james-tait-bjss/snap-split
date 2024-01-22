@@ -45,8 +45,7 @@
     "preset": "ts-jest",
     "testEnvironment": "node",
     "coverageReporters": [
-      "lcov",
-      "text-summary"
+      "json-summary"
     ],
     "testPathIgnorePatterns": [
       "dist/*"
