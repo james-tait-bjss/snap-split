@@ -1,5 +1,9 @@
 import { Transaction } from "./transaction"
-import { User, UserFactory } from "./user"
+import { User } from "./user"
+
+interface UserFactory {
+    createUser(id: string): User
+}
 
 export class Tab {
     private users: Map<string, User>
