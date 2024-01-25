@@ -18,7 +18,7 @@ jobs:
       - name: Run Unit tests
         run: npm run test:coverage
       - name: Generating coverage badges
-        uses: jpb06/jest-badges-action@latest
+        uses: jpb06/jest-badges-action@v1.9.18
         with:
           branches: develop
       - run: echo "🍏 This job's status is ${{ job.status }}."
