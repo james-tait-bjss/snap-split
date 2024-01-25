@@ -33,6 +33,14 @@ export class Tab {
         return this.transactions
     }
 
+    public getUsers(): Map<string, User> {
+        return this.users
+    }
+
+    public getUserIDs(): string[] {
+        return Array.from(this.users.keys())
+    }
+
     public getBalances(): Map<string, number> {
         const balances = new Map<string, number>()
 
@@ -43,23 +51,6 @@ export class Tab {
         return balances
     }
 
-    public getUsers(): Map<string, User> {
-        return this.users
-    }
-
-    public getUserIDs(): string[] {
-        return Array.from(this.users.keys())
-    }
-
-    public addUser(id: string) {
-        if (this.users.has(id)) {
-            throw new Error("user already exists")
-        }
-
-        const newUser = this.userFactory.createUser(id)
-        this.users.set(newUser.id, newUser)
-    }
-
     public addTransaction(transaction: Transaction) {
         const payingUser = this.users.get(transaction.paidBy)
         if (payingUser === undefined) {
@@ -68,7 +59,7 @@ export class Tab {
 
         for (const [userID, amountOwed] of transaction.owedBy.entries()) {
             if (!this.users.has(userID)) {
-                this.addUser(userID)
+                throw new Error("user not found")
             }
 
             const owingUser = this.users.get(userID)
@@ -77,7 +68,15 @@ export class Tab {
             owingUser?.shouldPay(payingUser.id, amountOwed)
         }
 
-        this.users.set(payingUser.id, payingUser)
         this.transactions.push(transaction)
+    }
+
+    addUser(id: string) {
+        if (this.users.has(id)) {
+            throw new Error("user already exists")
+        }
+
+        const newUser = this.userFactory.createUser(id)
+        this.users.set(newUser.id, newUser)
     }
 }

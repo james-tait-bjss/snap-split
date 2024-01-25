@@ -1,4 +1,4 @@
-import { TabDTO } from "../repository/dto"
+import { TabDTO, TransactionDTO } from "../repository/dto"
 import { tabNotExistError } from "./errors"
 import { Tab } from "./tab"
 
@@ -7,11 +7,6 @@ export interface TabRepository {
     getTab(id: string): Promise<TabDTO | null>
     deleteTab(id: string): void
     updateTab(id: string, dto: TabDTO): void
-}
-
-export interface TabConverter {
-    fromDTO(tabDTO: TabDTO): Tab
-    toDTO(tab: Tab): TabDTO
 }
 
 export interface TabFactory {
@@ -28,12 +23,11 @@ export class TabService {
     constructor(
         private readonly tabRepository: TabRepository,
         private readonly tabFactory: TabFactory,
-        private readonly tabConverter: TabConverter,
     ) {}
 
     async newTab(name: string, users: string[]): Promise<string> {
         const tab = this.tabFactory.createTab(name, users)
-        const tabDTO = this.tabConverter.toDTO(tab)
+        const tabDTO = this.toDTO(tab)
 
         return await this.tabRepository.newTab(tabDTO)
     }
@@ -45,7 +39,11 @@ export class TabService {
             throw tabNotExistError(id)
         }
 
-        const tab = this.tabConverter.fromDTO(tabDTO)
+        console.log(tabDTO)
+
+        const tab = this.fromDTO(tabDTO)
+
+        console.log(tab)
 
         // TODO: Extract this logic for unit testing
         const usersObject: {
@@ -85,7 +83,7 @@ export class TabService {
             throw tabNotExistError(id)
         }
 
-        const tab = this.tabConverter.fromDTO(tabDTO)
+        const tab = this.fromDTO(tabDTO)
 
         tab.addTransaction({
             paidBy: transaction.paidBy,
@@ -93,8 +91,36 @@ export class TabService {
             owedBy: new Map(Object.entries(transaction.owedBy)),
         })
 
-        const updatedTabDTO = this.tabConverter.toDTO(tab)
+        const updatedTabDTO = this.toDTO(tab)
         
         this.tabRepository.updateTab(id, updatedTabDTO)
+    }
+
+    private fromDTO(tabDTO: TabDTO): Tab {
+        const tab = this.tabFactory.createTab(tabDTO.name, tabDTO.users)
+
+        for (const transactionDTO of tabDTO.transactions) {
+            tab.addTransaction({
+                paidBy: transactionDTO.paidBy,
+                amount: transactionDTO.amount,
+                owedBy: new Map<string, number>(
+                    Object.entries(transactionDTO.owedBy),
+                ),
+            })
+        }
+
+        return tab
+    }
+
+    private toDTO(tab: Tab): TabDTO {
+        const transactionDTOs = tab.getTransactions().map((transaction) => {
+            return new TransactionDTO(
+                transaction.paidBy,
+                transaction.amount,
+                Object.fromEntries(transaction.owedBy),
+            )
+        })
+
+        return new TabDTO(tab.name, tab.getUserIDs(), transactionDTOs)
     }
 }
