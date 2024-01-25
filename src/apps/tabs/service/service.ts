@@ -39,11 +39,7 @@ export class TabService {
             throw tabNotExistError(id)
         }
 
-        console.log(tabDTO)
-
         const tab = this.fromDTO(tabDTO)
-
-        console.log(tab)
 
         // TODO: Extract this logic for unit testing
         const usersObject: {
