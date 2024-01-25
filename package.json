@@ -16,8 +16,7 @@
     "lint": "eslint . --ext .ts",
     "test": "jest",
     "test:serial": "jest --runInBand",
-    "test:coverage": "jest --coverage",
-    "test:badges": "npm run test:coverage && jest-coverage-badges output './badges'"
+    "test:coverage": "jest --coverage"
   },
   "keywords": [],
   "author": "",
