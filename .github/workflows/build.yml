@@ -1,6 +1,8 @@
 name: Build
 run-name: ${{ github.actor }} building snap-split
+
 on: [push]
+
 jobs:
   Unit:
     runs-on: ubuntu-latest
@@ -15,4 +17,8 @@ jobs:
         run: npm install
       - name: Run Unit tests
         run: npm run test:coverage
+      - name: Generating coverage badges
+        uses: jpb06/jest-badges-action@latest
+          with:
+            branches: develop
       - run: echo "🍏 This job's status is ${{ job.status }}."
