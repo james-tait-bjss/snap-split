@@ -6,7 +6,7 @@ interface HTTPReceiptItems {
     items: ReceiptItem[]
 }
 
-interface FileSystem {
+export interface FileSystem {
     existsSync(filepath: string): boolean
     readFileSync(filepath: string): string | Buffer
 }
