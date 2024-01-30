@@ -1,39 +1,28 @@
 import { DocumentProcessorServiceClient } from "@google-cloud/documentai"
-import { Storage } from "@google-cloud/storage"
-import express, { Request, Response } from "express"
+import express from "express"
 import fs from "fs"
 import multer from "multer"
+import { RequestLogger } from "../../libraries/middleware/requestLogger"
+import { ReceiptController } from "./controller"
+import { ReceiptRouteHandler } from "./routes"
+import { GCPReceiptParser } from "./service/receiptParser"
+import { ReceiptService } from "./service/service"
+
+const client = new DocumentProcessorServiceClient({
+    apiEndpoint: "eu-documentai.googleapis.com",
+})
+
+const projectNumber = "661140507135"
+const processorID = "6f4ffdbccb92bd16"
+const receiptParser = new GCPReceiptParser(client, projectNumber, processorID)
+const receiptService = new ReceiptService(receiptParser, fs)
+const receiptController = new ReceiptController(receiptService)
+const routeHandler = new ReceiptRouteHandler(
+    express.Router(),
+    receiptController,
+    multer({ dest: "uploads/" }),
+    new RequestLogger(),
+)
 
 export const receipts = express()
-const router = express.Router()
-
-const upload = multer({ dest: "uploads/" })
-
-router.post("/", upload.single("image"), test)
-
-
-async function test(req: Request, res: Response) {
-    const client = new DocumentProcessorServiceClient({
-        apiEndpoint: "eu-documentai.googleapis.com",
-    })
-    const storage = new Storage()
-
-    const projectNumber = "661140507135"
-    const processorID = "6f4ffdbccb92bd16"
-
-    if (req.file === undefined) {
-        res.sendStatus(400)
-
-        return
-    }
-
-    const imageFile = fs.readFileSync(req.file.path)
-    const encodedImage = Buffer.from(imageFile).toString("base64")
-
-
-    res.send({
-        items: items,
-    })
-}
-
-receipts.use(express.json()).use("/", router)
+receipts.use(express.json()).use("/", routeHandler.router)

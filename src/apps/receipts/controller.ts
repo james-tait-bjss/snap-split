@@ -14,10 +14,17 @@ export class ReceiptController {
 
     async postReceipt(req: Request, res: Response) {
         let result: HTTPReceiptItems
+        console.log(req.file)
+        if (req.file == null) {
+            res.send(400)
+
+            return
+        }
+
         try {
             result = await this.receiptService.getReceiptItems(
-                req.body.imgPath,
-                req.body.mimeType,
+                req.file.path,
+                req.file.mimetype,
             )
         } catch (err) {
             if (err instanceof ReceiptServiceError) {

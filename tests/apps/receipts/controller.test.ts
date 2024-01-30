@@ -33,11 +33,11 @@ describe("ReceiptController", () => {
             )
 
             const req = {
-                body: {
-                    imgPath: "path",
-                    mimeType: "type",
+                file: {
+                    path: "path",
+                    mimetype: "type",
                 },
-            } as Request
+            } as unknown as Request
 
             // Act
             const result = controller.postReceipt(req, mockResponse)
@@ -45,8 +45,8 @@ describe("ReceiptController", () => {
             result.then(() => {
                 // Assert
                 expect(mockReceiptService.getReceiptItems).toHaveBeenCalledWith(
-                    req.body.imgPath,
-                    req.body.mimeType,
+                    "path",
+                    "type",
                 )
                 expect(mockResponse.send).toHaveBeenCalledWith(serviceResponse)
             })
@@ -60,19 +60,19 @@ describe("ReceiptController", () => {
             })
 
             const req = {
-                body: {
-                    imgPath: "not-exist-path",
-                    mimeType: "type",
+                file: {
+                    path: "path",
+                    mimetype: "type",
                 },
-            } as Request
+            } as unknown as Request
 
             // Act
             controller.postReceipt(req, mockResponse)
 
             // Assert
             expect(mockReceiptService.getReceiptItems).toHaveBeenCalledWith(
-                req.body.imgPath,
-                req.body.mimeType,
+                "path",
+                "type",
             )
             expect(mockResponse.sendStatus).toHaveBeenCalledWith(400)
         })
