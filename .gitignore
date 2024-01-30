@@ -134,3 +134,6 @@ src/apps/tabs/.db/
 
 # IDE
 .vscode
+
+# User uploads
+uploads/

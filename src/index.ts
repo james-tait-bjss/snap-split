@@ -1,6 +1,7 @@
 import express from "express"
+import { receipts } from "./apps/receipts"
 import { tabs } from "./apps/tabs/index"
 
 export const app = express()
 
-app.use(express.json()).use("/api/tabs", tabs)
+app.use("/api/tabs", tabs).use("/api/receipts", receipts)
