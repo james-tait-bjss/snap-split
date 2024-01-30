@@ -2,7 +2,7 @@ import { imgFileNotExistError } from "./errors"
 
 type base64 = string
 
-interface HTTPReceiptItems {
+export interface HTTPReceiptItems {
     items: ReceiptItem[]
     hadParsingError: boolean
 }
