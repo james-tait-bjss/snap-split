@@ -4,6 +4,7 @@ type base64 = string
 
 interface HTTPReceiptItems {
     items: ReceiptItem[]
+    hadParsingError: boolean
 }
 
 export interface FileSystem {
@@ -11,8 +12,11 @@ export interface FileSystem {
     readFileSync(filepath: string): string | Buffer
 }
 
-export interface ReceiptParser {
-    parseReceipt(image: base64, mimeType: string): Promise<ReceiptItem[]>
+export interface IReceiptParser {
+    parseReceipt(
+        image: base64,
+        mimeType: string,
+    ): Promise<[ReceiptItem[], boolean]>
 }
 
 export interface ReceiptItem {
@@ -23,7 +27,7 @@ export interface ReceiptItem {
 
 export class ReceiptService {
     constructor(
-        private readonly receiptParser: ReceiptParser,
+        private readonly receiptParser: IReceiptParser,
         private readonly fs: FileSystem,
     ) {}
 
@@ -31,7 +35,8 @@ export class ReceiptService {
      * @param imgPath - the file path at which the image is stored
      * @param mimeType - the mimeType of the image
      * @returns an object containing an array of ReceiptItems
-     *  representing each item on the receipt
+     *  representing each item on the receipt, and a boolean
+     *  representing whether there was an issue when parsing the receipt
      */
     public async getReceiptItems(
         imgPath: string,
@@ -44,13 +49,14 @@ export class ReceiptService {
         const imageFile = this.fs.readFileSync(imgPath)
         const encodedImage = Buffer.from(imageFile).toString("base64")
 
-        const receiptItems = await this.receiptParser.parseReceipt(
+        const [receiptItems, hadParsingError] = await this.receiptParser.parseReceipt(
             encodedImage,
             mimeType,
         )
 
         return {
             items: receiptItems,
+            hadParsingError: hadParsingError
         }
     }
 }

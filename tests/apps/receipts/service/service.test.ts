@@ -1,18 +1,18 @@
 import { ReceiptServiceError } from "../../../../src/apps/receipts/service/errors"
 import {
     FileSystem,
-    ReceiptParser,
+    IReceiptParser,
     ReceiptService,
 } from "../../../../src/apps/receipts/service/service"
 
 describe("ReceiptService", () => {
-    let mockReceiptParser: jest.Mocked<ReceiptParser>
+    let mockReceiptParser: jest.Mocked<IReceiptParser>
     let mockFileSystem: jest.Mocked<FileSystem>
 
     beforeEach(() => {
         mockReceiptParser = {
             parseReceipt: jest.fn(),
-        } as jest.Mocked<ReceiptParser>
+        } as jest.Mocked<IReceiptParser>
 
         mockFileSystem = {
             existsSync: jest.fn(),
@@ -64,7 +64,7 @@ describe("ReceiptService", () => {
                     amount: 40,
                 },
             ]
-            mockReceiptParser.parseReceipt.mockResolvedValue(returnedItems)
+            mockReceiptParser.parseReceipt.mockResolvedValue([returnedItems, false])
 
             // Act
             const result = receiptService.getReceiptItems(
@@ -75,6 +75,7 @@ describe("ReceiptService", () => {
             // Assert
             expect(result).resolves.toStrictEqual({
                 items: returnedItems,
+                hadParsingError: false,
             })
 
             expect(mockFileSystem.existsSync).toHaveBeenCalledWith("img-path")
