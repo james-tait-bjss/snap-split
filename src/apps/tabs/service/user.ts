@@ -21,8 +21,7 @@ export class User {
     }
 
     public shouldBePaidBy(user: string, amount: number) {
-        const currAmount = this.owedBy.get(user) ?? 0
-        this.owedBy.set(user, currAmount + amount)
+        this.shouldPay(user, -amount)
     }
 
     public calculateBalance(): number {

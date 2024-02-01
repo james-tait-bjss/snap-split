@@ -17,7 +17,6 @@ export class ReceiptController {
         console.log(req.file)
         if (req.file == null) {
             res.send(400)
-
             return
         }
 
